@@ -516,7 +516,7 @@ the current position of point, then move it to the beginning of the line."
 
 
 
-
+(load (expand-file-name "~/.roswell/helper.el"))
 
 ;; Make gc pauses faster by decreasing the threshold.
 ;; (see https://blog.d46.us/advanced-emacs-startup/)
