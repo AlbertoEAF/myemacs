@@ -67,7 +67,8 @@
 
 (define-key lisp-mode-map (kbd "<tab>") 'my-lisp-pre-indent-command-line)
 
-(define-key parinfer-region-mode-map (kbd "<tab>") 'my-lisp-pre-indent-command)
+;; needs to be done on parinfer-load:
+;;(define-key parinfer-region-mode-map (kbd "<tab>") 'my-lisp-pre-indent-command)
 
 
 ;; 'parinfer-shift-right
