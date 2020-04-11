@@ -207,6 +207,8 @@
 (key-chord-define-global "çp" 'org-pomodoro)
 
 
+
+
 (key-chord-mode 1)
 
 ;(key-chord-define-global "hj"     'undo)

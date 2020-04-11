@@ -308,6 +308,11 @@
   
   ;;(add-to-list 'load-path "path/of/slime")
   (require 'slime-autoloads)
+
+  (load "~/.roswell/lisp/quicklisp/log4slime-setup.el")
+  (global-log4slime-mode 1)
+
+  (key-chord-define-global "çq" 'slime-eval-last-expression)
   )
 
 ;;; emacs parinfer
@@ -331,3 +336,11 @@
     (add-hook 'common-lisp-mode-hook #'parinfer-mode)
     (add-hook 'scheme-mode-hook #'parinfer-mode)
     (add-hook 'lisp-mode-hook #'parinfer-mode)))
+
+
+(load "sweet-lisp.el")
+
+
+(provide 'myemacs)
+;;; myemacs ends here
+
