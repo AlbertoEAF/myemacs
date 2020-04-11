@@ -1,0 +1,313 @@
+#+TITLE: My Emacs 2020 configuration
+#+AUTHOR: Alberto Ferreira
+#+OPTIONS: num:nil 
+
+Had to redo my 10yr old setup. Starting anew with .org-based configuration.
+
+Based on https://github.com/himmAllRight/dotfiles/blob/master/emacs/config.org
+
+* Bootstrap packages
+
+** Melpa 
+#+BEGIN_SRC emacs-lisp
+(require 'package)
+(add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/"))
+#+END_SRC
+
+** use-package
+#+BEGIN_SRC emacs-lisp
+(unless (package-installed-p 'use-package)
+  (package-refresh-contents)
+  (package-install 'use-package))
+
+(eval-when-compile
+  (require 'use-package))
+#+END_SRC
+
+** Auto-compile
+#+BEGIN_SRC emacs-lisp
+  (use-package auto-compile
+    :ensure t)
+(setq load-prefer-newer t)
+#+END_SRC
+
+* Core Setup
+** Basic Stuff
+*** Better Defaults
+#+BEGIN_SRC emacs-lisp
+  (use-package better-defaults
+    :ensure t)
+#+END_SRC
+*** Splash Screen
+Remove splash screen and use *scratch* instead as the home buffer
+#+BEGIN_SRC emacs-lisp
+(setq inhibit-startup-message t
+      inhibit-startup-echo-area-message t)
+#+END_SRC
+
+*** Line Numbers
+Switch line numbers on by default in all buffers
+#+BEGIN_SRC emacs-lisp
+(global-linum-mode 1)
+#+END_SRC
+
+*** Menu Bar
+Switch the Menubar off by default (I like to keep everything clean)
+#+BEGIN_SRC emacs-lisp
+(menu-bar-mode -1)
+#+END_SRC
+
+*** Scroll Bar
+Remove Scroll Bars
+#+BEGIN_SRC emacs-lisp
+  (scroll-bar-mode -1)
+#+END_SRC
+
+*** Tool Bar
+Remove Tool Bars
+#+BEGIN_SRC emacs-lisp
+  (tool-bar-mode -1)
+#+END_SRC
+
+*** New Line indent
+New lines auto indents
+#+BEGIN_SRC emacs-lisp
+(define-key global-map (kbd "RET")
+  'newline-and-indent)
+#+END_SRC
+
+*** Tool Tips
+Tool Tips in echo area
+#+BEGIN_SRC emacs-lisp
+(tooltip-mode -1)
+(setq tooltip-use-echo-area t)
+#+END_SRC
+
+** Themes
+
+#+BEGIN SRC emacs-lisp
+(add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
+
+(use-package zenburn-theme :ensure t)
+(use-package solarized-theme :ensure t)
+;(use-package spacemacs-theme :ensure t)
+
+
+(load-theme 'spacemacs-light t)
+#+END SRC
+
+
+
+
+** Dashboard
+Use the "dashboard" package for my startup screen.
+#+BEGIN_SRC emacs-lisp
+  (use-package dashboard
+    :ensure t
+    :config
+    (dashboard-setup-startup-hook)
+
+    ;; Edits
+    (setq dashboard-banner-logo-title "Welcome to Emacs Alberto!")
+    (setq dashboard-startup-banner 'logo)
+    (setq dashboard-items '((recents   . 5)
+                            (bookmarks . 5)
+                            (agenda    . 5))))
+#+END_SRC
+** Window Management
+*** Switch-Window
+#+BEGIN_SRC emacs-lisp
+  (use-package switch-window
+    :ensure t)
+#+END_SRC
+*** Key Binding
+#+BEGIN_SRC emacs-lisp
+;; Previous Window shortcut
+(global-set-key (kbd "C-x p")
+                (lambda() (interactive) (other-window -1)))
+(global-set-key (kbd "C-x o")
+                (lambda() (interactive) (other-window 1)))
+(global-set-key (kbd "C-c z") 'zoom-window)
+#+END_SRC
+* Evil Mode
+
+#+BEGIN_SRC emacs-lisp
+;; Evil Mode
+(use-package evil
+  :disabled
+  :ensure t
+  :config
+
+  (evil-mode 1)
+  (use-package evil-leader
+    :ensure t
+    :config
+    (global-evil-leader-mode t)
+    (evil-leader/set-leader "<SPC>")
+    (evil-leader/set-key
+      "s s" 'swiper
+      "d x w" 'delete-trailing-whitespace)) 
+
+  (use-package evil-surround
+    :ensure t
+    :config (global-evil-surround-mode))
+
+  (use-package evil-indent-textobject
+    :ensure t)
+
+  (use-package evil-org
+    :ensure t
+    :config
+    (evil-org-set-key-theme '(textobjects insert navigation additional shift todo heading))
+    (add-hook 'org-mode-hook (lambda () (evil-org-mode))))
+
+  (use-package powerline-evil
+    :ensure t
+    :config
+    (powerline-evil-vim-color-theme)
+    )
+  )
+#+END_SRC
+* Ivy
+Setup and use Ivy
+#+BEGIN_SRC emacs-lisp
+(use-package ivy
+  :ensure t
+  :config
+  (ivy-mode 1)
+  (setq ivy-use-virtual-buffers t)
+  (setq enable-recursive-minibuffers t)
+  ;; Ivy Keybindings
+  (global-set-key (kbd "C-c C-r") 'ivy-resume))
+#+END_SRC
+
+Configure Swiper
+#+BEGIN_SRC emacs-lisp
+(use-package swiper
+  :ensure t
+  :config
+  (global-set-key "\C-s" 'swiper)
+  )
+#+END_SRC
+
+Counsel configuration
+#+BEGIN_SRC emacs-lisp
+(use-package counsel 
+  :ensure t
+  :config 
+  (global-set-key (kbd "M-x") 'counsel-M-x)
+  (global-set-key (kbd "C-x C-f") 'counsel-find-file))
+#+END_SRC
+
+* Key Bindings
+These will eventually be relocations to just be included with their
+respective ~use-package~ calls...
+
+#+BEGIN_SRC emacs-lisp
+  ;; Eshell launch keybind
+  (global-set-key (kbd "C-c t") 'eshell)
+
+  ;; Comment/Uncomment region
+  (global-set-key (kbd "C-c ;") 'comment-region)
+
+  ;; Comment/Uncomment region
+  (global-set-key (kbd "C-c s") 'org-edit-src-code)
+#+END_SRC
+
+* Writting
+
+** Markdown
+#+BEGIN_SRC emacs-lisp
+(use-package markdown-mode
+  :ensure t)
+#+END_SRC
+
+
+
+* Development
+** Auto Complete
+#+BEGIN_SRC emacs-lisp
+(use-package auto-complete
+  :ensure t
+  :config
+  (ac-config-default))
+#+END_SRC
+
+** Git
+I use magit for easy git management
+#+BEGIN_SRC emacs-lisp
+  (use-package magit
+    :ensure t
+    :bind 
+    (("C-c g" . 'magit-status)))
+#+END_SRC
+
+** Yaml
+Setup YAML mode for editing configs
+#+BEGIN_SRC emacs-lisp
+  (use-package yaml-mode
+    :ensure t)
+#+END_SRC
+** Json
+Json mode:
+#+BEGIN_SRC emacs-lisp
+  (use-package json-mode
+    :ensure t)
+#+END_SRC
+** Python
+Starting a python dev setup:
+
+#+BEGIN_SRC emacs-lisp
+  ;; This should only run fully if elpy is installed
+  (unwind-protect
+      (use-package elpy
+        :ensure t))
+#+END_SRC
+
+Set default interpreter to python 3 instead of 2.
+#+BEGIN_SRC emacs-lisp
+  (setf python-shell-interpreter "python3")
+#+END_SRC
+
+
+* himmAllRight's dotfile Random Functions
+** Zoom-Window
+Saves the current state of the buffers, and then zooms the current
+buffer full screen. When called again, goes back to origonal buffer
+setup.
+#+BEGIN_SRC emacs-lisp
+(setq zoom-temp-window-configuration nil)
+(defun zoom-window ()
+  (interactive)
+  (if zoom-temp-window-configuration
+      (progn
+        (set-window-configuration zoom-temp-window-configuration)
+	(setq zoom-temp-window-configuration nil)
+        (message "Window un-zoomed"))
+    (progn
+      (setq zoom-temp-window-configuration (current-window-configuration))
+      (delete-other-windows)
+      (message "Window zoomed"))))
+#+END_SRC
+** eshell-clear-buffer
+Clears my eshell more like a normal terminal would
+#+BEGIN_SRC emacs-lisp
+(defun eshell-clear-buffer ()
+  "Clear terminal"
+  (interactive)
+  (let ((inhibit-read-only t))
+    (erase-buffer)
+    (eshell-send-input)))
+#+END_SRC
+
+I need this hook for the function, and I like to set it to a keybind:
+#+BEGIN_SRC emacs-lisp
+(add-hook 'eshell-mode-hook
+	  '(lambda()
+	     (local-set-key (kbd "C-l") 'eshell-clear-buffer)))
+
+(global-set-key (kbd "C-c <delete>") 'eshell-clear-buffer)
+#+END_SRC
+
+
+
