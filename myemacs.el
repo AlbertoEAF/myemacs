@@ -340,6 +340,7 @@
 
 (load "sweet-lisp.el")
 
+(load "/home/alberto.ferreira/.roswell/lisp/quicklisp/clhs-use-local.el" t)
 
 (provide 'myemacs)
 ;;; myemacs ends here
