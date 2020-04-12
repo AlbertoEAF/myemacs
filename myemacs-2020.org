@@ -238,7 +238,7 @@ Use the "dashboard" package for my startup screen.
   (key-chord-define-global "çs"  'save-buffer)
   (key-chord-define-global "ÇS"  'save-buffer)
   (key-chord-define-global "ço"  'other-window)
-  (key-chord-define-global "çk"  'kill-buffer)
+  (key-chord-define-global "çk"  'kill-this-buffer)
   (key-chord-define-global "ÇK"  'clean-buffers)
   (key-chord-define-global "çu"  'undo)
   (key-chord-define-global "ç1"  'delete-other-windows)
