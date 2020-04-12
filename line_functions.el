@@ -35,8 +35,3 @@
 ;;   "Shows the range selected"
 ;;   (interactive "r")
 ;;   (message "Text is selected from %d to %d" start end))
-
-;(current-buffer)
-;(other-buffer)
-;(switch-to-buffer (other-buffer))
-;(print (point-min) (point-max))(point)(point)

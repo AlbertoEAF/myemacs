@@ -1,28 +1,52 @@
 #+TITLE: My Emacs 2020 configuration
 #+AUTHOR: Alberto Ferreira
-#+OPTIONS: num:nil 
+#+OPTIONS: num:nil
 
 Had to redo my 10yr old setup. Starting anew with .org-based configuration.
 
-Based on https://github.com/himmAllRight/dotfiles/blob/master/emacs/config.org
+Based .org setup on https://github.com/himmAllRight/dotfiles/blob/master/emacs/config.org
+
+Compiled emacs from source with:
+#+begin_src bash
+./configure --with-cairo --with-xwidgets
+#+end_src
 
 * Bootstrap packages
 
-** Melpa 
+** Melpa
 #+BEGIN_SRC emacs-lisp
 (require 'package)
 (add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/"))
 #+END_SRC
 
-** use-package
+** use-package (& key-chords)
+Install `use-package` if necessary:
 #+BEGIN_SRC emacs-lisp
 (unless (package-installed-p 'use-package)
   (package-refresh-contents)
   (package-install 'use-package))
+#+END_SRC
 
+Load use-package at compile-time:
+#+begin_src emacs-lisp
 (eval-when-compile
   (require 'use-package))
-#+END_SRC
+#+end_src
+
+Key chord extensions:
+#+begin_src emacs-lisp
+(use-package key-chord :ensure t)
+(use-package use-package-chords
+  :ensure t
+  :config (key-chord-mode 1))
+#+end_src
+
+Hydra extensions:
+#+begin_src emacs-lisp
+(use-package hydra :ensure t)
+(use-package use-package-hydra
+  :ensure t)
+#+end_src
 
 ** Auto-compile
 #+BEGIN_SRC emacs-lisp
@@ -37,7 +61,39 @@ Based on https://github.com/himmAllRight/dotfiles/blob/master/emacs/config.org
 #+BEGIN_SRC emacs-lisp
   (use-package better-defaults
     :ensure t)
+
+
+(setq dired-dwim-target t)
+
 #+END_SRC
+
+*** Dired-mode
+#+begin_src emacs-lisp
+  (defun my/setup_dired_shortcuts ()
+    (local-set-key (kbd "M-<up>") 'dired-up-directory))
+
+  (add-hook 'dired-mode-hook 'my/setup_dired_shortcuts)
+
+  ;; probably should bind all those inside dired keymap only:
+  (use-package dired-rsync
+    :ensure t
+    :config (bind-key "C-c C-r" 'dired-rsync dired-mode-map))
+
+  (use-package "my-rsync.el"
+    :load-path "myemacs"
+    :after dired-rsync
+    :chords ("çr" . my-rsync-from-dired-mark))
+
+
+  (setq dired-listing-switches "-alh") ;; human-readable filesizes in dired
+
+#+end_src
+
+*** TRAMP
+#+begin_src emacs-lisp
+(setq tramp-use-ssh-controlmaster-options nil) ; Lets TRAMP use my custom ssh:ControlPath
+#+end_src
+
 *** Splash Screen
 Remove splash screen and use *scratch* instead as the home buffer
 #+BEGIN_SRC emacs-lisp
@@ -83,21 +139,53 @@ Tool Tips in echo area
 (setq tooltip-use-echo-area t)
 #+END_SRC
 
+*** Status bar
+#+begin_src emacs-lisp
+(column-number-mode 1) ; add column number besides the line number
+#+end_src
+
+*** Recentf mode
+Enable recent files mode
+#+begin_src emacs-lisp
+(recentf-mode 1)
+#+end_src
+
+*** Fringes
+#+begin_src emacs-lisp
+;(set-fringe-mode 1) ;; Disable fringes
+#+end_src
+
+*** Cursor
+#+begin_src emacs-lisp
+(blink-cursor-mode 1)
+#+end_src
+
 ** Themes
 
-#+BEGIN SRC emacs-lisp
-(add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
+#+BEGIN_SRC emacs-lisp
+  (use-package spacemacs-theme
+    :defer t
+    :init
+    (load-theme 'spacemacs-light t)
+    (setq spacemacs-theme-org-agenda-height nil)
+    (setq spacemacs-theme-org-height nil))
 
-(use-package zenburn-theme :ensure t)
-(use-package solarized-theme :ensure t)
-;(use-package spacemacs-theme :ensure t)
+  ;; Still need to understand how to make the spaceline activate correctly below:
 
+  (use-package spaceline
+    :defer t
+    :init
+    (setq powerline-default-separator 'arrow-fade)
+    :config
+    (require 'spaceline-config)
+    (spaceline-spacemacs-theme))
 
-(load-theme 'spacemacs-light t)
-#+END SRC
-
-
-
+  (use-package all-the-icons :ensure t)
+  (use-package spaceline-all-the-icons
+    :ensure t
+    :after spaceline
+    :config (spaceline-all-the-icons-theme))
+#+END_SRC
 
 ** Dashboard
 Use the "dashboard" package for my startup screen.
@@ -114,12 +202,21 @@ Use the "dashboard" package for my startup screen.
                             (bookmarks . 5)
                             (agenda    . 5))))
 #+END_SRC
+
 ** Window Management
+*** Winner mode
+#+begin_src emacs-lisp
+(use-package winner
+  :init (winner-mode 1)
+  )
+#+end_src
+
 *** Switch-Window
 #+BEGIN_SRC emacs-lisp
   (use-package switch-window
     :ensure t)
 #+END_SRC
+
 *** Key Binding
 #+BEGIN_SRC emacs-lisp
 ;; Previous Window shortcut
@@ -129,45 +226,167 @@ Use the "dashboard" package for my startup screen.
                 (lambda() (interactive) (other-window 1)))
 (global-set-key (kbd "C-c z") 'zoom-window)
 #+END_SRC
-* Evil Mode
 
-#+BEGIN_SRC emacs-lisp
-;; Evil Mode
-(use-package evil
-  :disabled
-  :ensure t
+** Navigation/Movement / editing key bindings
+#+begin_src emacs-lisp
+  ;; actions
+  (key-chord-define-global "çf"  'ido-find-file)
+  (key-chord-define-global "çb"  'ido-switch-buffer)
+  (key-chord-define-global "çs"  'save-buffer)
+  (key-chord-define-global "ÇS"  'save-buffer)
+  (key-chord-define-global "ço"  'other-window)
+  (key-chord-define-global "çk"  'kill-buffer)
+  (key-chord-define-global "ÇK"  'clean-buffers)
+  (key-chord-define-global "çu"  'undo)
+  (key-chord-define-global "ç1"  'delete-other-windows)
+  (key-chord-define-global "ç2"  'split-window-below)
+  (key-chord-define-global "ç3"  'split-window-right)
+  (key-chord-define-global "ç0"  'delete-window)
+  (key-chord-define-global "çw"  'kill-word)
+  (key-chord-define-global "ç "  'whitespace-cleanup)
+  (key-chord-define-global "çj"  'join-line)
+  (key-chord-define-global "ÇJ"  'join-line)
+  (key-chord-define-global "çc"  'comment-or-uncomment-region)
+
+  (use-package expand-region
+      :ensure t
+      :chords ("ça" . er/expand-region))
+
+
+  (key-chord-define-global "çt" 'org-sparse-tree) ;org
+
+
+  ;;(use-package hide-comnt :ensure t)
+  ;;(define-key global-map (kbd "C-c #") 'hide/show-comments-toggle)
+
+  ;; (deprecated chords)
+  ;;(key-chord-define-global "çb"  'helm-mini)
+  ;;(key-chord-define-global "çf"  'helm-find-files)
+  ;;(key-chord-define-global "fg" 'iy-go-to-char)
+  ;;(key-chord-define-global "df" 'iy-go-to-char-backward)
+  ;;(use-package iy-go-to-char :ensure t)
+
+
+  (key-chord-define-global "çh"  'replace-string)
+
+  ;; navigation
+  ;;(key-chord-define-global "ºj"  'ace-jump-mode)
+
+
+
+  ;; non-key-chord actions:
+  (global-set-key (kbd "s-r") 'recentf-open-files)
+  (global-set-key (kbd "s-o") 'myfiles)
+#+end_src
+
+** Drag-stuff
+Use package drag stuff:
+#+begin_src emacs-lisp
+  (use-package drag-stuff
+    :ensure t
+    :config
+    (drag-stuff-global-mode t))
+#+end_src
+
+Add code to drag manually:
+#+begin_src emacs-lisp
+(load "~/myemacs/move_lines")
+#+end_src
+** Org-mode
+#+begin_src emacs-lisp
+;; Org-mode settings
+(use-package org
+  :defer t
+  :init
+  (setq org-agenda-files (list
+                          "~/Documents/leumi/leumicard-ds"
+                          "~/org"
+                          "~/org/leumi"
+                          "~/org/cb"))
+
   :config
+  (add-to-list 'auto-mode-alist '("\\.org$" . org-mode))
+  (global-set-key "\C-cl" 'org-store-link)
+  (global-set-key "\C-ca" 'org-agenda)
+  (global-font-lock-mode 1)
 
-  (evil-mode 1)
-  (use-package evil-leader
+  (require 'ox-gfm nil t)
+  (load-file "~/myemacs/org-gitbook.el"))
+
+(use-package ox-reveal
+  :after org
+  :init
+  (add-to-list 'load-path "~/code/external/org-reveal/ox-reveal.el")
+  (load-file "~/code/external/org-reveal/ox-reveal.el")
+  (require 'ox-reveal)
+  (setq org-reveal-root "file:///home/alberto.ferreira/code/external/reveal.js/"))
+
+;; export html
+(defun org-f5 ()
+  (interactive)
+  (save-buffer)
+  (org-html-export-to-html))
+(define-key org-mode-map (kbd "<f5>") 'org-f5)
+
+
+;;; clock time
+(setq org-clock-persist 'history)
+(org-clock-persistence-insinuate)
+
+
+; org-mode inline languages and disable confirmation
+(setq org-babel-python-command "python3")
+(org-babel-do-load-languages
+ 'org-babel-load-languages
+ '((python . t) (shell . t)))
+(setq org-confirm-babel-evaluate nil)
+(setq org-src-tab-acts-natively t) ; better editing behaviour for python indentation
+
+(setq org-default-notes-file (concat org-directory "/notes.org"))
+(define-key global-map "\C-cc" 'org-capture)
+
+(setq org-capture-templates
+ '(("t" "Todo" entry (file+headline "~/org/gtd.org" "Tasks")
+        "* TODO %?\n  %i\n  %a")
+   ("j" "Journal" entry (file+datetree "~/org/journal.org")
+        "* %?\nEntered on %U\n  %i\n  %a")))
+
+(defun select-org-table-cell ()
+  "Selects a cell content in an org table if the cursor is placed inside"
+  (interactive)
+  (search-backward "|")
+  (forward-char)
+  (skip-chars-forward " ")
+  (set-mark (point))
+  (search-forward "|")
+  (backward-char)
+  (skip-chars-backward " "))
+(key-chord-define-global "ºc"  'select-org-table-cell)
+
+#+end_src
+
+** Clipboard
+#+begin_src emacs-lisp
+(setq x-select-enable-clipboard t)
+#+end_src
+
+** Bell
+#+begin_src emacs-lisp
+;(setq ring-bell-function 'ignore)
+#+end_src
+
+** Myfiles (bookmarking system)
+#+begin_src emacs-lisp
+(load "~/myemacs/myfiles")
+#+end_src
+
+* Avy
+#+begin_src emacs-lisp
+  (use-package avy
     :ensure t
-    :config
-    (global-evil-leader-mode t)
-    (evil-leader/set-leader "<SPC>")
-    (evil-leader/set-key
-      "s s" 'swiper
-      "d x w" 'delete-trailing-whitespace)) 
+    :chords ("ºj" . avy-goto-word-or-subword-1))
+#+end_src
 
-  (use-package evil-surround
-    :ensure t
-    :config (global-evil-surround-mode))
-
-  (use-package evil-indent-textobject
-    :ensure t)
-
-  (use-package evil-org
-    :ensure t
-    :config
-    (evil-org-set-key-theme '(textobjects insert navigation additional shift todo heading))
-    (add-hook 'org-mode-hook (lambda () (evil-org-mode))))
-
-  (use-package powerline-evil
-    :ensure t
-    :config
-    (powerline-evil-vim-color-theme)
-    )
-  )
-#+END_SRC
 * Ivy
 Setup and use Ivy
 #+BEGIN_SRC emacs-lisp
@@ -192,9 +411,9 @@ Configure Swiper
 
 Counsel configuration
 #+BEGIN_SRC emacs-lisp
-(use-package counsel 
+(use-package counsel
   :ensure t
-  :config 
+  :config
   (global-set-key (kbd "M-x") 'counsel-M-x)
   (global-set-key (kbd "C-x C-f") 'counsel-find-file))
 #+END_SRC
@@ -214,17 +433,58 @@ respective ~use-package~ calls...
   (global-set-key (kbd "C-c s") 'org-edit-src-code)
 #+END_SRC
 
-* Writting
+* Tools
+#+begin_src emacs-lisp
+  (use-package pdf-tools
+    :ensure t
+    :config
+    (pdf-tools-install)
+    (add-hook 'pdf-view-mode-hook (lambda() (linum-mode -1)))) ; don't show line numbers beside pdf
+#+end_src
 
+* Writing
 ** Markdown
 #+BEGIN_SRC emacs-lisp
 (use-package markdown-mode
   :ensure t)
 #+END_SRC
 
-
+** DVI
+#+begin_src emacs-lisp
+(setq tex-dvi-view-command "xdvi")
+#+end_src
 
 * Development
+** Multiple cursors
+#+begin_src emacs-lisp
+  (use-package multiple-cursors
+    :ensure t
+    :bind (("C-S-l" . 'mc/edit-lines)
+           ("C->" . 'mc/mark-next-like-this)
+           ("C-<" . 'mc/mark-previous-like-this)
+           ("C-c C-<" . 'mc/mark-all-like-this)
+           ("C-S-<mouse-1>" . 'mc/add-cursor-on-click))
+    :hydra ( multiple-cursors-hydra (:hint nil)
+                                    "
+       ^Up^            ^Down^        ^Other^
+  ----------------------------------------------
+  [_p_]   Next    [_n_]   Next    [_l_] Edit lines
+  [_P_]   Skip    [_N_]   Skip    [_a_] Mark all
+  [_M-p_] Unmark  [_M-n_] Unmark  [_r_] Mark by regexp
+  ^ ^             ^ ^             [_q_] Quit
+  "
+                                    ("l" mc/edit-lines :exit t)
+                                    ("a" mc/mark-all-like-this :exit t)
+                                    ("n" mc/mark-next-like-this)
+                                    ("N" mc/skip-to-next-like-this)
+                                    ("M-n" mc/unmark-next-like-this)
+                                    ("p" mc/mark-previous-like-this)
+                                    ("P" mc/skip-to-previous-like-this)
+                                    ("M-p" mc/unmark-previous-like-this)
+                                    ("r" mc/mark-all-in-region-regexp :exit t)
+                                    ("q" nil)))
+#+end_src
+
 ** Auto Complete
 #+BEGIN_SRC emacs-lisp
 (use-package auto-complete
@@ -233,14 +493,43 @@ respective ~use-package~ calls...
   (ac-config-default))
 #+END_SRC
 
+** Yasnippet
+#+begin_src emacs-lisp
+(use-package yasnippet
+  :ensure t
+  :disabled
+  :config
+  (use-package yasnippet-snippets
+    :ensure t)
+  (yas-global-mode 1)
+  ;; Yasnippet with Shift+Tab
+  (define-key yas-minor-mode-map (kbd "<tab>") nil)
+  (define-key yas-minor-mode-map (kbd "TAB") nil)
+  ;; Set Yasnippet's key binding to shift+tab
+  (define-key yas-minor-mode-map (kbd "<backtab>") 'yas-expand))
+#+end_src
+
 ** Git
 I use magit for easy git management
 #+BEGIN_SRC emacs-lisp
   (use-package magit
     :ensure t
-    :bind 
-    (("C-c g" . 'magit-status)))
+    :chords (("çm" . magit-status))
+    :bind (("C-c g" . 'magit-status)))
 #+END_SRC
+
+** Projectile
+#+begin_src emacs-lisp
+(use-package projectile
+  :ensure t)
+
+(use-package projectile
+  :ensure t
+  :bind-keymap
+  ("C-c p" . projectile-command-map)
+  :config
+  (projectile-mode +1))
+#+end_src
 
 ** Yaml
 Setup YAML mode for editing configs
@@ -248,66 +537,283 @@ Setup YAML mode for editing configs
   (use-package yaml-mode
     :ensure t)
 #+END_SRC
+
 ** Json
 Json mode:
 #+BEGIN_SRC emacs-lisp
   (use-package json-mode
     :ensure t)
 #+END_SRC
+
 ** Python
 Starting a python dev setup:
-
-#+BEGIN_SRC emacs-lisp
-  ;; This should only run fully if elpy is installed
-  (unwind-protect
-      (use-package elpy
-        :ensure t))
-#+END_SRC
 
 Set default interpreter to python 3 instead of 2.
 #+BEGIN_SRC emacs-lisp
   (setf python-shell-interpreter "python3")
 #+END_SRC
 
+** Common Lisp
+*** Slime
+#+begin_src emacs-lisp
+(use-package slime
+  :ensure t
+  :pin melpa
+  :defer t
+  :commands slime
+  :config
+  (load (expand-file-name "~/.roswell/helper.el"))
+  (setq inferior-lisp-program "ros -Q run")
 
-* himmAllRight's dotfile Random Functions
-** Zoom-Window
-Saves the current state of the buffers, and then zooms the current
-buffer full screen. When called again, goes back to origonal buffer
-setup.
-#+BEGIN_SRC emacs-lisp
-(setq zoom-temp-window-configuration nil)
-(defun zoom-window ()
-  (interactive)
-  (if zoom-temp-window-configuration
+  ;;(add-to-list 'load-path "path/of/slime")
+  (require 'slime-autoloads)
+
+  ;(load "~/.roswell/lisp/quicklisp/log4slime-setup.el")
+  ;(global-log4slime-mode 1)
+
+  (key-chord-define-global "çq" 'slime-eval-last-expression)
+  )
+#+end_src
+
+*** Paredit
+#+begin_src emacs-lisp
+(use-package paredit
+   :ensure t  ;; if you need it
+   :commands (enable-paredit-mode))
+   ;;:init
+   ;;(add-hook 'clojure-mode-hook #'enable-paredit-mode))
+#+end_src
+
+*** Parinfer
+#+begin_src emacs-lisp
+(use-package parinfer
+  :ensure t
+  :defer 1
+  :bind
+  (("C-," . parinfer-toggle-mode))
+  :init
+  (progn
+    (setq parinfer-extensions
+          '(defaults       ; should be included.
+             pretty-parens  ; different paren styles for different modes.
+             evil           ; If you use Evil.
+             lispy          ; If you use Lispy. With this extension, you should install Lispy and do not enable lispy-mode directly.
+             paredit        ; Introduce some paredit commands.
+             smart-tab      ; C-b & C-f jump positions and smart shift with tab & S-tab.
+             smart-yank))   ; Yank behavior depend on mode.
+    (add-hook 'clojure-mode-hook #'parinfer-mode)
+    (add-hook 'emacs-lisp-mode-hook #'parinfer-mode)
+    (add-hook 'common-lisp-mode-hook #'parinfer-mode)
+    (add-hook 'scheme-mode-hook #'parinfer-mode)
+    (add-hook 'lisp-mode-hook #'parinfer-mode)))
+#+end_src
+
+*** TODO Improve sweet-expressions compatibility
+#+begin_src emacs-lisp
+;;(load "~/myemacs/sweet-lisp.el")
+#+end_src
+
+Auto-pair parenthesis:
+#+begin_src emacs-lisp
+  (use-package autopair
+    :ensure t
+    :config (autopair-global-mode 1))
+#+end_src
+
+*** Local HyperSpec
+#+begin_src emacs-lisp
+(load "~/.roswell/lisp/quicklisp/clhs-use-local.el" t)
+#+end_src
+
+** Fill column indicator
+#+begin_src emacs-lisp
+
+(use-package fill-column-indicator
+  :ensure t
+  :config
+  (setq fci-rule-column 100))
+
+#+end_src
+
+* Custom functions
+
+** himmAllRight's dotfile Random Functions
+Taken from the original .org-based setup at https://github.com/himmAllRight/dotfiles/blob/master/emacs/config.org
+*** Zoom-Window
+  Saves the current state of the buffers, and then zooms the current
+  buffer full screen. When called again, goes back to origonal buffer
+  setup.
+  #+BEGIN_SRC emacs-lisp
+  (setq zoom-temp-window-configuration nil)
+  (defun zoom-window ()
+    (interactive)
+    (if zoom-temp-window-configuration
+        (progn
+          (set-window-configuration zoom-temp-window-configuration)
+          (setq zoom-temp-window-configuration nil)
+          (message "Window un-zoomed"))
       (progn
-        (set-window-configuration zoom-temp-window-configuration)
-	(setq zoom-temp-window-configuration nil)
-        (message "Window un-zoomed"))
-    (progn
-      (setq zoom-temp-window-configuration (current-window-configuration))
-      (delete-other-windows)
-      (message "Window zoomed"))))
-#+END_SRC
-** eshell-clear-buffer
-Clears my eshell more like a normal terminal would
-#+BEGIN_SRC emacs-lisp
-(defun eshell-clear-buffer ()
-  "Clear terminal"
+        (setq zoom-temp-window-configuration (current-window-configuration))
+        (delete-other-windows)
+        (message "Window zoomed"))))
+  #+END_SRC
+
+*** eshell-clear-buffer
+ Clears my eshell more like a normal terminal would
+ #+BEGIN_SRC emacs-lisp
+ (defun eshell-clear-buffer ()
+   "Clear terminal"
+   (interactive)
+   (let ((inhibit-read-only t))
+     (erase-buffer)
+     (eshell-send-input)))
+ #+END_SRC
+
+ I need this hook for the function, and I like to set it to a keybind:
+ #+BEGIN_SRC emacs-lisp
+ (add-hook 'eshell-mode-hook
+           '(lambda()
+              (local-set-key (kbd "C-l") 'eshell-clear-buffer)))
+
+ (global-set-key (kbd "C-c <delete>") 'eshell-clear-buffer)
+ #+END_SRC
+
+** My custom functions
+*** duplicate-line
+  #+begin_src emacs-lisp
+  (use-package duplicate_line.el
+    :load-path "~/myemacs"
+    :config
+    (key-chord-define-global "çd" 'duplicate-line))
+  #+end_src
+
+*** kill-whole-line
+ #+begin_src emacs-lisp
+ (defun Kill-whole-line ()
+   (interactive)
+   (let ((oldpoint (point)))
+     (kill-whole-line)
+     (goto-char oldpoint)))
+
+ (define-key global-map (kbd "C-S-k") 'kill-whole-line)
+ #+end_src
+
+*** smart line beginning
+ #+begin_src emacs-lisp
+ (defun smart-line-beginning ()
+   "Move point to the beginning of text on the current line; if that is already
+ the current position of point, then move it to the beginning of the line."
+   (interactive)
+   (let ((pt (point)))
+     (beginning-of-line-text)
+     (when (eq pt (point))
+       (beginning-of-line))))
+
+
+ (define-key global-map (kbd "C-a") 'smart-line-beginning)
+ #+end_src
+
+*** Rename current buffer file
+#+begin_src emacs-lisp
+(defun rename-current-buffer-file ()
+  "Renames current buffer and file it is visiting. Found on stackoverflow :)."
   (interactive)
-  (let ((inhibit-read-only t))
-    (erase-buffer)
-    (eshell-send-input)))
-#+END_SRC
+  (let* ((name (buffer-name))
+         (filename (buffer-file-name))
+         (basename (file-name-nondirectory filename)))
+    (if (not (and filename (file-exists-p filename)))
+        (error "Buffer '%s' is not visiting a file!" name)
+      (let ((new-name (read-file-name "New name: " (file-name-directory filename) basename nil basename)))
+        (if (get-buffer new-name)
+            (error "A buffer named '%s' already exists!" new-name)
+          (rename-file filename new-name 1)
+          (rename-buffer new-name)
+          (set-visited-file-name new-name)
+          (set-buffer-modified-p nil)
+          (message "File '%s' successfully renamed to '%s'"
+                   name (file-name-nondirectory new-name)))))))
+#+end_src
 
-I need this hook for the function, and I like to set it to a keybind:
-#+BEGIN_SRC emacs-lisp
-(add-hook 'eshell-mode-hook
-	  '(lambda()
-	     (local-set-key (kbd "C-l") 'eshell-clear-buffer)))
+*** TODO Random utils (needs organization)
+#+begin_src emacs-lisp
 
-(global-set-key (kbd "C-c <delete>") 'eshell-clear-buffer)
-#+END_SRC
+  ;; (defun my-find-file-check-make-large-file-read-only-hook ()
+  ;;   "If a file is over a given size, make the buffer read only."
+  ;;   (when (> (buffer-size) (* 1024 1024))
+  ;;     (setq buffer-read-only t)
+  ;;     (buffer-disable-undo)
+  ;;     (fundamental-mode)))
+
+  ;(add-hook 'find-file-hook 'my-find-file-check-make-large-file-read-only-hook)
 
 
 
+  (defun clean-buffers ()
+    (interactive)
+    (let ((clean-buffer-list-delay-general 0))
+      (clean-buffer-list)))
+
+
+  (defun kill-other-buffers ()
+    "Kill all other buffers."
+    (interactive)
+    (mapc 'kill-buffer
+          (delq (current-buffer)
+                (remove-if-not 'buffer-file-name (buffer-list)))))
+#+end_src
+
+*** TODO Organize line functions
+#+begin_src emacs-lisp
+(defun create-indent-and-go-to-next-line ()
+  (interactive)
+  (move-end-of-line 1)
+  (insert "\n")
+  (indent-for-tab-command))
+
+(defun add-empty-line-above ()
+  (interactive)
+  (save-excursion
+    (forward-line -1)
+    (create-indent-and-go-to-next-line)))
+
+
+(define-key global-map (kbd "S-<return>") 'create-indent-and-go-to-next-line)
+(define-key global-map (kbd "C-<return>") 'add-empty-line-above)
+#+end_src
+
+That's it! Enjoy!
+
+*** Recompile packages
+#+begin_src emacs-lisp
+(defun my-package-recompile()
+  "Recompile all packages"
+  (interactive)
+  (byte-recompile-directory "~/.emacs.d/elpa" 0 t))
+#+end_src
+
+*** Jump around punctuation
+#+begin_src emacs-lisp
+(defun create-and-go-to-next-line ()
+  (interactive)
+  (move-end-of-line nil)
+  (autopair-newline))
+
+(defun goto-next-dot ()
+  (interactive)
+  (search-forward "."))
+(defun goto-prev-dot ()
+  (interactive)
+  (search-backward "."))
+(defun goto-next-comma ()
+  (interactive)
+  (search-forward ","))
+(defun goto-prev-comma ()
+  (interactive)
+  (search-backward ","))
+(defun goto-next-dollar ()
+  (interactive)
+  (search-forward "$"))
+(defun goto-prev-dollar ()
+  (interactive)
+  (search-backward "$"))
+#+end_src
