@@ -164,6 +164,7 @@ Enable recent files mode
 
 #+BEGIN_SRC emacs-lisp
   (use-package spacemacs-theme
+    :ensure t
     :defer t
     :init
     (load-theme 'spacemacs-light t)
@@ -173,7 +174,9 @@ Enable recent files mode
   ;; Still need to understand how to make the spaceline activate correctly below:
 
   (use-package spaceline
-    :defer t
+    :ensure t
+    ;;:after spacemacs-theme
+    ;;:defer t
     :init
     (setq powerline-default-separator 'arrow-fade)
     :config
