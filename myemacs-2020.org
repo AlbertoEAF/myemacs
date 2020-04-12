@@ -378,9 +378,35 @@ Add code to drag manually:
 ;(setq ring-bell-function 'ignore)
 #+end_src
 
+** Iedit
+
+#+begin_src emacs-lisp
+(use-package iedit
+  :ensure t)
+#+end_src
+
 ** Myfiles (bookmarking system)
 #+begin_src emacs-lisp
 (load "~/myemacs/myfiles")
+#+end_src
+
+* Helm
+#+begin_src emacs-lisp
+  (use-package helm
+    :ensure t)
+  
+;;(use-package helm-config :ensure t)
+
+
+;;(helm-mode 1)
+
+;;(global-set-key (kbd "M-x") 'helm-M-x)
+
+(global-set-key (kbd "M-y") 'helm-show-kill-ring)
+;;(global-set-key (kbd "C-x b") 'helm-buffers-list)
+;(global-set-key (kbd "C-x b") 'helm-mini)
+;;(global-set-key (kbd "C-x C-f") 'helm-find-files)
+
 #+end_src
 
 * Avy
@@ -553,6 +579,14 @@ Set default interpreter to python 3 instead of 2.
 #+BEGIN_SRC emacs-lisp
   (setf python-shell-interpreter "python3")
 #+END_SRC
+
+** Lisp
+
+*** Lispy
+#+begin_src emacs-lisp
+  (use-package lispy
+    :ensure t)
+#+end_src
 
 ** Common Lisp
 *** Slime
