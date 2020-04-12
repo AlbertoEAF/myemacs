@@ -524,10 +524,8 @@ I use magit for easy git management
 ** Projectile
 #+begin_src emacs-lisp
 (use-package projectile
-  :ensure t)
-
-(use-package projectile
   :ensure t
+  :commands projectile-grep
   :bind-keymap
   ("C-c p" . projectile-command-map)
   :config
