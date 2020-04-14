@@ -102,9 +102,8 @@ Remove splash screen and use *scratch* instead as the home buffer
 #+END_SRC
 
 *** Line Numbers
-Switch line numbers on by default in all buffers
 #+BEGIN_SRC emacs-lisp
-(global-linum-mode 1)
+(global-linum-mode 0)
 #+END_SRC
 
 *** Menu Bar
@@ -317,6 +316,7 @@ Add code to drag manually:
   (load-file "~/myemacs/org-gitbook.el"))
 
 (use-package ox-reveal
+  :disabled
   :after org
   :init
   (add-to-list 'load-path "~/code/external/org-reveal/ox-reveal.el")
