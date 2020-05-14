@@ -173,6 +173,7 @@ Enable recent files mode
   ;; Still need to understand how to make the spaceline activate correctly below:
 
   (use-package spaceline
+    :disabled
     :ensure t
     ;;:after spacemacs-theme
     ;;:defer t
@@ -184,6 +185,7 @@ Enable recent files mode
 
   (use-package all-the-icons :ensure t)
   (use-package spaceline-all-the-icons
+    :disabled
     :ensure t
     :after spaceline
     :config (spaceline-all-the-icons-theme))
@@ -390,6 +392,16 @@ Add code to drag manually:
 (load "~/myemacs/myfiles")
 #+end_src
 
+** Docker
+#+begin_src emacs-lisp
+  (use-package dockerfile-mode
+    :ensure t
+    :mode "Dockerfile\\'")
+
+  (use-package docker
+    :ensure t
+    :bind ("C-c d" . docker))
+#+end_src
 * Helm
 #+begin_src emacs-lisp
   (use-package helm
