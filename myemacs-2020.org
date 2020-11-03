@@ -402,6 +402,18 @@ Add code to drag manually:
     :ensure t
     :bind ("C-c d" . docker))
 #+end_src
+
+** Bookmarks
+#+begin_src emacs-lisp
+(use-package bm
+  :bind (("<C-f2>" . bm-toggle)
+         ("<f2>" . bm-next)
+         ("<S-f2>" . bm-previous)))
+#+end_src
+
+#+RESULTS:
+: bm-previous
+
 * Helm
 #+begin_src emacs-lisp
   (use-package helm
@@ -443,16 +455,20 @@ Setup and use Ivy
 
 Configure Swiper
 #+BEGIN_SRC emacs-lisp
-(use-package swiper
-  :ensure t
-  :config
-  (global-set-key "\C-s" 'swiper)
-  )
+  (use-package swiper
+    :disabled
+    :ensure t
+    :config
+    (global-set-key "\C-s" 'swiper)
+    )
 #+END_SRC
+
+#+RESULTS:
 
 Counsel configuration
 #+BEGIN_SRC emacs-lisp
 (use-package counsel
+  :disabled
   :ensure t
   :config
   (global-set-key (kbd "M-x") 'counsel-M-x)
@@ -603,23 +619,25 @@ Set default interpreter to python 3 instead of 2.
 ** Common Lisp
 *** Slime
 #+begin_src emacs-lisp
-(use-package slime
-  :ensure t
-  :pin melpa
-  :defer t
-  :commands slime
-  :config
-  (load (expand-file-name "~/.roswell/helper.el"))
-  (setq inferior-lisp-program "ros -Q run")
+  (use-package slime
+    :ensure t
+    :pin melpa
+    :defer t
+    :commands slime
+    :config
+    (load (expand-file-name "~/.roswell/helper.el"))
+    (setq inferior-lisp-program "ros -Q run")
 
-  ;;(add-to-list 'load-path "path/of/slime")
-  (require 'slime-autoloads)
+    ;;(add-to-list 'load-path "path/of/slime")
+    (require 'slime-autoloads)
 
-  ;(load "~/.roswell/lisp/quicklisp/log4slime-setup.el")
-  ;(global-log4slime-mode 1)
+    ;(load "~/.roswell/lisp/quicklisp/log4slime-setup.el")
+    ;(global-log4slime-mode 1)
 
-  (key-chord-define-global "çq" 'slime-eval-last-expression)
-  )
+    (global-set-key "\C-cs" 'slime-selector)
+
+    (key-chord-define-global "çq" 'slime-eval-last-expression)
+    ())
 #+end_src
 
 *** Paredit
@@ -672,6 +690,26 @@ Auto-pair parenthesis:
 (load "~/.roswell/lisp/quicklisp/clhs-use-local.el" t)
 #+end_src
 
+*** Syntax highlighting for defstar
+#+begin_src emacs-lisp
+  ;; fontify doc strings in correct face
+  ;; lisp-mode already fontifies 'defun*' correctly
+  (put 'defvar*   'doc-string-elt 3)
+  (put 'defparameter*   'doc-string-elt 3)
+  (put 'lambda*   'doc-string-elt 2)
+
+  (defvar *lisp-special-forms*
+    (regexp-opt '("defvar*"
+                "defconstant*"
+                "defparameter*"
+                "defgeneric*"
+                "defmethod*"
+                "lambda*"
+                "flet*"
+                "labels*") 'words))
+  (font-lock-add-keywords 'lisp-mode
+    `((,*lisp-special-forms* . font-lock-keyword-face)))
+#+end_src
 ** Fill column indicator
 #+begin_src emacs-lisp
 
