@@ -418,7 +418,7 @@ Add code to drag manually:
 #+begin_src emacs-lisp
   (use-package helm
     :ensure t)
-  
+
 ;;(use-package helm-config :ensure t)
 
 
@@ -462,8 +462,6 @@ Configure Swiper
     (global-set-key "\C-s" 'swiper)
     )
 #+END_SRC
-
-#+RESULTS:
 
 Counsel configuration
 #+BEGIN_SRC emacs-lisp
@@ -719,6 +717,14 @@ Auto-pair parenthesis:
   (setq fci-rule-column 100))
 
 #+end_src
+
+** String manipulation
+#+begin_src emacs-lisp
+  (use-package s
+    :ensure t)
+#+end_src
+
+#+RESULTS:
 
 * Custom functions
 
