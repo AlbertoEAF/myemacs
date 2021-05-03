@@ -506,7 +506,9 @@ respective ~use-package~ calls...
 ** Screenshots
 Paste images directly from clipboard to org documents:
 #+BEGIN_SRC emacs-lisp
-  (use-package org-download :ensure t)
+  (use-package org-download
+    :ensure t
+    :chords (("çy" . org-download-clipboard)))
 #+END_SRC
 
 
