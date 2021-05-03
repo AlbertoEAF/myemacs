@@ -16,7 +16,7 @@ Compiled emacs from source with:
 ** Melpa
 #+BEGIN_SRC emacs-lisp
 (require 'package)
-(add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/"))
+(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
 #+END_SRC
 
 ** use-package (& key-chords)
@@ -498,6 +498,18 @@ respective ~use-package~ calls...
 #+end_src
 
 * Writing
+** Pandoc
+#+BEGIN_SRC emacs-lisp
+  (use-package ox-pandoc :ensure t)
+#+END_SRC
+
+** Screenshots
+Paste images directly from clipboard to org documents:
+#+BEGIN_SRC emacs-lisp
+  (use-package org-download :ensure t)
+#+END_SRC
+
+
 ** Markdown
 #+BEGIN_SRC emacs-lisp
 (use-package markdown-mode
