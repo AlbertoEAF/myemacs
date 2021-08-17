@@ -298,75 +298,76 @@ Add code to drag manually:
 #+end_src
 ** Org-mode
 #+begin_src emacs-lisp
-;; Org-mode settings
-(use-package org
-  :defer t
-  :init
-  (setq org-agenda-files (list
-                          "~/Documents/leumi/leumicard-ds"
-                          "~/org"
-                          "~/org/leumi"
-                          "~/org/cb"))
+  ;; Org-mode settings
+  (use-package org
+    :defer t
+    :init
+    (setq org-agenda-files '("~/org"))
 
-  :config
-  (add-to-list 'auto-mode-alist '("\\.org$" . org-mode))
-  (global-set-key "\C-cl" 'org-store-link)
-  (global-set-key "\C-ca" 'org-agenda)
-  (global-font-lock-mode 1)
+    :config
+    (add-to-list 'auto-mode-alist '("\\.org$" . org-mode))
+    (global-set-key "\C-cl" 'org-store-link)
+    (global-set-key "\C-ca" 'org-agenda)
+    (global-font-lock-mode 1)
 
-  (require 'ox-gfm nil t)
-  (load-file "~/myemacs/org-gitbook.el"))
+    (require 'ox-gfm nil t)
+    (load-file "~/myemacs/org-gitbook.el"))
 
-(use-package ox-reveal
-  :disabled
-  :after org
-  :init
-  (add-to-list 'load-path "~/code/external/org-reveal/ox-reveal.el")
-  (load-file "~/code/external/org-reveal/ox-reveal.el")
-  (require 'ox-reveal)
-  (setq org-reveal-root "file:///home/alberto.ferreira/code/external/reveal.js/"))
+  (use-package ox-reveal
+    :disabled
+    :after org
+    :init
+    (add-to-list 'load-path "~/code/external/org-reveal/ox-reveal.el")
+    (load-file "~/code/external/org-reveal/ox-reveal.el")
+    (require 'ox-reveal)
+    (setq org-reveal-root "file:///home/alberto.ferreira/code/external/reveal.js/"))
 
-;; export html
-(defun org-f5 ()
-  (interactive)
-  (save-buffer)
-  (org-html-export-to-html))
-(define-key org-mode-map (kbd "<f5>") 'org-f5)
+  ;; export html
+  (defun org-f5 ()
+    (interactive)
+    (save-buffer)
+    (org-html-export-to-html))
+  (define-key org-mode-map (kbd "<f5>") 'org-f5)
 
 
-;;; clock time
-(setq org-clock-persist 'history)
-(org-clock-persistence-insinuate)
+  ;; clock time
+  (setq org-clock-persist 'history)
+  (org-clock-persistence-insinuate)
 
 
-; org-mode inline languages and disable confirmation
-(setq org-babel-python-command "python3")
-(org-babel-do-load-languages
- 'org-babel-load-languages
- '((python . t) (shell . t)))
-(setq org-confirm-babel-evaluate nil)
-(setq org-src-tab-acts-natively t) ; better editing behaviour for python indentation
+  ;; org-mode inline languages and disable confirmation
+  (setq org-babel-python-command "python3")
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '((python . t) (shell . t)))
+  (setq org-confirm-babel-evaluate nil)
+  (setq org-src-tab-acts-natively t) ; better editing behaviour for python indentation
 
-(setq org-default-notes-file (concat org-directory "/notes.org"))
-(define-key global-map "\C-cc" 'org-capture)
+  (setq org-default-notes-file (concat org-directory "/notes.org"))
+  (define-key global-map "\C-cc" 'org-capture)
 
-(setq org-capture-templates
- '(("t" "Todo" entry (file+headline "~/org/gtd.org" "Tasks")
-        "* TODO %?\n  %i\n  %a")
-   ("j" "Journal" entry (file+datetree "~/org/journal.org")
-        "* %?\nEntered on %U\n  %i\n  %a")))
+  ;; Could use daily journal files instead: (http://www.howardism.org/Technical/Emacs/journaling-org.html)
+  ;; See also https://orgmode.org/manual/Template-expansion.html
+  (setq org-capture-templates
+        '(("t" "Todo" entry (file+datetree "~/org/gtd.org") ;(file+headline "~/org/gtd.org" "Tasks")
+           "* TODO %?\n  :PROPERTIES:\n  :creation_date:%U\n  :created_in:%a\n  :END:\n\n %i\n")
+          ("j" "Journal" entry (file+datetree "~/org/journal.org")
+           "* %?\nEntered on %U\n  %i\n  %a")))
 
-(defun select-org-table-cell ()
-  "Selects a cell content in an org table if the cursor is placed inside"
-  (interactive)
-  (search-backward "|")
-  (forward-char)
-  (skip-chars-forward " ")
-  (set-mark (point))
-  (search-forward "|")
-  (backward-char)
-  (skip-chars-backward " "))
-(key-chord-define-global "ºc"  'select-org-table-cell)
+  ;; Org refile!! Important to read & setup! https://blog.aaronbieber.com/2017/03/19/organizing-notes-with-refile.html
+  (setq org-refile-targets '((org-agenda-files :maxlevel . 3)))
+
+  (defun select-org-table-cell ()
+    "Selects a cell content in an org table if the cursor is placed inside"
+    (interactive)
+    (search-backward "|")
+    (forward-char)
+    (skip-chars-forward " ")
+    (set-mark (point))
+    (search-forward "|")
+    (backward-char)
+    (skip-chars-backward " "))
+  (key-chord-define-global "ºc"  'select-org-table-cell)
 
 #+end_src
 
