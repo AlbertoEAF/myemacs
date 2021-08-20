@@ -33,6 +33,16 @@ Load use-package at compile-time:
   (require 'use-package))
 #+end_src
 
+** Setup ~myemacs-dir~ variable
+#+begin_src emacs-lisp
+  ;; Crucial variable to search local modules:
+  (if (boundp 'myemacs-dir)
+      (unless (string-suffix-p "/" myemacs-dir)
+        (setq myemacs-dir (concat myemacs-dir "/")))
+    (throw 'myemacs-dir "myemacs-dir is not set!"))
+#+end_src
+
+
 Key chord extensions:
 #+begin_src emacs-lisp
 (use-package key-chord :ensure t)
@@ -80,7 +90,7 @@ Hydra extensions:
     :config (bind-key "C-c C-r" 'dired-rsync dired-mode-map))
 
   (use-package "my-rsync.el"
-    :load-path "myemacs"
+    :load-path myemacs-dir
     :after dired-rsync
     :chords ("çr" . my-rsync-from-dired-mark))
 
@@ -294,7 +304,7 @@ Use package drag stuff:
 
 Add code to drag manually:
 #+begin_src emacs-lisp
-(load "~/myemacs/move_lines")
+  (load (concat myemacs-dir "move_lines"))
 #+end_src
 ** Org-mode
 #+begin_src emacs-lisp
@@ -311,7 +321,7 @@ Add code to drag manually:
     (global-font-lock-mode 1)
 
     (require 'ox-gfm nil t)
-    (load-file "~/myemacs/org-gitbook.el"))
+    (load-file (concat myemacs-dir "org-gitbook.el")))
 
   (use-package ox-reveal
     :disabled
@@ -350,7 +360,7 @@ Add code to drag manually:
   ;; See also https://orgmode.org/manual/Template-expansion.html
   (setq org-capture-templates
         '(("t" "Todo" entry (file+datetree "~/org/gtd.org") ;(file+headline "~/org/gtd.org" "Tasks")
-           "* TODO %?\n  :PROPERTIES:\n  :creation_date:%U\n  :created_in:%a\n  :END:\n\n %i\n")
+           "* TODO %?\n  :PROPERTIES:\n  :creation_date: %U\n  :created_in: %a\n  :END:\n\n %i\n")
           ("j" "Journal" entry (file+datetree "~/org/journal.org")
            "* %?\nEntered on %U\n  %i\n  %a")))
 
@@ -420,7 +430,7 @@ There's also the non-hierarchic note-taking system **org-roam** of course:
 
 ** Myfiles (bookmarking system)
 #+begin_src emacs-lisp
-(load "~/myemacs/myfiles")
+  (load (concat myemacs-dir "myfiles"))
 #+end_src
 
 ** Docker
@@ -718,7 +728,7 @@ Set default interpreter to python 3 instead of 2.
 
 *** TODO Improve sweet-expressions compatibility
 #+begin_src emacs-lisp
-;;(load "~/myemacs/sweet-lisp.el")
+;;(load (concat myemacs-dir "sweet-lisp.el"))
 #+end_src
 
 Auto-pair parenthesis:
@@ -730,7 +740,8 @@ Auto-pair parenthesis:
 
 *** Local HyperSpec
 #+begin_src emacs-lisp
-(load "~/.roswell/lisp/quicklisp/clhs-use-local.el" t)
+  (use-package clhs-use-local.el
+    :load-path "~/.roswell/lisp/quicklisp")
 #+end_src
 
 *** Syntax highlighting for defstar
@@ -818,7 +829,7 @@ Taken from the original .org-based setup at https://github.com/himmAllRight/dotf
 *** duplicate-line
   #+begin_src emacs-lisp
   (use-package duplicate_line.el
-    :load-path "~/myemacs"
+    :load-path myemacs-dir
     :config
     (key-chord-define-global "çd" 'duplicate-line))
   #+end_src

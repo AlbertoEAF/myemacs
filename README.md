@@ -5,6 +5,7 @@ This repo has all the configurations neatly organized into the `myemacs-2020.org
 To use it just add this line to your `.emacs` file:
 ```lisp
 ;; Add this to your .emacs file:
+(setq myemacs-dir "~/myemacs/")  ;; To load internal modules
 (org-babel-load-file "~/myemacs/myemacs-2020.org")
 ```
 
