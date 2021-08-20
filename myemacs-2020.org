@@ -533,6 +533,7 @@ respective ~use-package~ calls...
 #+begin_src emacs-lisp
   (use-package pdf-tools
     :ensure t
+    :if (equal system-type 'gnu/linux) ;; disable on Windows for now until fix is available.
     :config
     (pdf-tools-install)
     (add-hook 'pdf-view-mode-hook (lambda() (linum-mode -1)))) ; don't show line numbers beside pdf
@@ -704,26 +705,27 @@ Set default interpreter to python 3 instead of 2.
 
 *** Parinfer
 #+begin_src emacs-lisp
-(use-package parinfer
-  :ensure t
-  :defer 1
-  :bind
-  (("C-," . parinfer-toggle-mode))
-  :init
-  (progn
-    (setq parinfer-extensions
-          '(defaults       ; should be included.
-             pretty-parens  ; different paren styles for different modes.
-             evil           ; If you use Evil.
-             lispy          ; If you use Lispy. With this extension, you should install Lispy and do not enable lispy-mode directly.
-             paredit        ; Introduce some paredit commands.
-             smart-tab      ; C-b & C-f jump positions and smart shift with tab & S-tab.
-             smart-yank))   ; Yank behavior depend on mode.
-    (add-hook 'clojure-mode-hook #'parinfer-mode)
-    (add-hook 'emacs-lisp-mode-hook #'parinfer-mode)
-    (add-hook 'common-lisp-mode-hook #'parinfer-mode)
-    (add-hook 'scheme-mode-hook #'parinfer-mode)
-    (add-hook 'lisp-mode-hook #'parinfer-mode)))
+  (use-package parinfer
+    :ensure nil
+    :disabled  ;; it's broken - deprecated & to be replaced by parinfer-rust & parinfer-rust-mode
+    :defer 1
+    :bind
+    (("C-," . parinfer-toggle-mode))
+    :init
+    (progn
+      (setq parinfer-extensions
+            '(defaults       ; should be included.
+               pretty-parens  ; different paren styles for different modes.
+               evil           ; If you use Evil.
+               lispy          ; If you use Lispy. With this extension, you should install Lispy and do not enable lispy-mode directly.
+               paredit        ; Introduce some paredit commands.
+               smart-tab      ; C-b & C-f jump positions and smart shift with tab & S-tab.
+               smart-yank))   ; Yank behavior depend on mode.
+      (add-hook 'clojure-mode-hook #'parinfer-mode)
+      (add-hook 'emacs-lisp-mode-hook #'parinfer-mode)
+      (add-hook 'common-lisp-mode-hook #'parinfer-mode)
+      (add-hook 'scheme-mode-hook #'parinfer-mode)
+      (add-hook 'lisp-mode-hook #'parinfer-mode)))
 #+end_src
 
 *** TODO Improve sweet-expressions compatibility
@@ -734,7 +736,8 @@ Set default interpreter to python 3 instead of 2.
 Auto-pair parenthesis:
 #+begin_src emacs-lisp
   (use-package autopair
-    :ensure t
+    :ensure nil
+    :disabled ;; apparently it's no longer on MELPA?! Look for replacement
     :config (autopair-global-mode 1))
 #+end_src
 
@@ -780,7 +783,83 @@ Auto-pair parenthesis:
     :ensure t)
 #+end_src
 
-#+RESULTS:
+** Rust
+
+   This setup follows from [[https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/][Rust with Emacs]].
+
+   Rustic is a lightweight system with no dependencies that replaces rust-mode:
+#+begin_src emacs-lisp
+(use-package rustic
+  :ensure
+  :bind (:map rustic-mode-map
+              ("M-j" . lsp-ui-imenu)
+              ("M-?" . lsp-find-references)
+              ("C-c C-c l" . flycheck-list-errors)
+              ("C-c C-c a" . lsp-execute-code-action)
+              ("C-c C-c r" . lsp-rename)
+              ("C-c C-c q" . lsp-workspace-restart)
+              ("C-c C-c Q" . lsp-workspace-shutdown)
+              ("C-c C-c s" . lsp-rust-analyzer-status))
+  :config
+  ;; uncomment for less flashiness
+  ;; (setq lsp-eldoc-hook nil)
+  ;; (setq lsp-enable-symbol-highlighting nil)
+  ;; (setq lsp-signature-auto-activate nil)
+
+  ;; comment to disable rustfmt on save
+  (setq rustic-format-on-save t)
+  (add-hook 'rustic-mode-hook 'rk/rustic-mode-hook))
+
+(defun rk/rustic-mode-hook ()
+  ;; so that run C-c C-c C-r works without having to confirm, but don't try to
+  ;; save rust buffers that are not file visiting. Once
+  ;; https://github.com/brotzeit/rustic/issues/253 has been resolved this should
+  ;; no longer be necessary.
+  (when buffer-file-name
+    (setq-local buffer-save-without-query t)))
+#+end_src
+
+however, it is not as full featured as using LSP + rust-analyzer:
+
+#+begin_src emacs-lisp
+  (use-package lsp-mode
+    :ensure
+    :commands lsp
+    :custom
+    ;; what to use when checking on-save. "check" is default, I prefer clippy
+    (lsp-rust-analyzer-cargo-watch-command "clippy")
+    (lsp-eldoc-render-all t)
+    (lsp-idle-delay 0.6)
+    (lsp-rust-analyzer-server-display-inlay-hints t)
+    :config
+    (add-hook 'lsp-mode-hook 'lsp-ui-mode))
+
+  (use-package lsp-ui
+    :ensure
+    :commands lsp-ui-mode
+    :custom
+    (lsp-ui-peek-always-show t)
+    (lsp-ui-sideline-show-hover t)
+    ;(lsp-ui-doc-enable nil)  ;; Docs might be too verbose. If so uncomment this.
+    )
+#+end_src
+
+
+** Company-mode (completion)
+
+   #+begin_src emacs-lisp
+(use-package company
+  :ensure
+  :custom
+  (company-idle-delay 0.5) ;; how long to wait until popup
+  ;; (company-begin-commands nil) ;; uncomment to disable popup
+  :bind
+  (:map company-active-map
+              ("C-n". company-select-next)
+              ("C-p". company-select-previous)
+              ("M-<". company-select-first)
+              ("M->". company-select-last)))
+   #+end_src
 
 * Custom functions
 
