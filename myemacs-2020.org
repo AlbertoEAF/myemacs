@@ -11,6 +11,28 @@ Compiled emacs from source with:
 ./configure --with-cairo --with-xwidgets
 #+end_src
 
+* Bootstrap myemacs system:
+
+Myemacs-dir must be set by user before loading myemacs system:
+   #+begin_src emacs-lisp
+  (unless (boundp 'myemacs-dir)
+    (throw 'myemacs-dir "myemacs-dir is not set!"))
+
+  (defvar myemacs-dir
+    (if (string-suffix-p "/" myemacs-dir)
+        (concat myemacs-dir "/")
+      myemacs-dir)
+    "The myemacs directory on your filesystem.
+  Used by myemacs system to load its internal extension modules")
+#+end_src
+
+Also, define some useful variables:
+#+begin_src emacs-lisp
+  (defconst windows-os (eq system-type 'windows-nt)
+    "t if this is a Windows OS")
+#+end_src
+
+
 * Bootstrap packages
 
 ** Melpa
@@ -80,7 +102,7 @@ Hydra extensions:
     :config (bind-key "C-c C-r" 'dired-rsync dired-mode-map))
 
   (use-package "my-rsync.el"
-    :load-path "myemacs"
+    :load-path myemacs-dir
     :after dired-rsync
     :chords ("çr" . my-rsync-from-dired-mark))
 
@@ -158,6 +180,14 @@ Enable recent files mode
 #+begin_src emacs-lisp
 (blink-cursor-mode 1)
 #+end_src
+
+*** Electric-pair-mode
+
+    Automatically insert matching parenthesis/quotes if a region is selected:
+    #+begin_src emacs-lisp
+     ;; (electric-pair-mode)
+    #+end_src
+    
 
 ** Themes
 
@@ -294,7 +324,7 @@ Use package drag stuff:
 
 Add code to drag manually:
 #+begin_src emacs-lisp
-(load "~/myemacs/move_lines")
+  (load (concat myemacs-dir "move_lines"))
 #+end_src
 ** Org-mode
 #+begin_src emacs-lisp
@@ -304,14 +334,17 @@ Add code to drag manually:
     :init
     (setq org-agenda-files '("~/org" "~/org/max"))
 
+    :hook (org-mode . (lambda () (visual-line-mode)))
+
     :config
     (add-to-list 'auto-mode-alist '("\\.org$" . org-mode))
     (global-set-key "\C-cl" 'org-store-link)
     (global-set-key "\C-ca" 'org-agenda)
     (global-font-lock-mode 1)
 
-    (require 'ox-gfm nil t)
-    (load-file "~/myemacs/org-gitbook.el"))
+    (unless windows-os
+      (require 'ox-gfm nil t)
+      (load-file (concat myemacs-dir "org-gitbook.el"))))
 
   (use-package ox-reveal
     :disabled
@@ -350,7 +383,7 @@ Add code to drag manually:
   ;; See also https://orgmode.org/manual/Template-expansion.html
   (setq org-capture-templates
         '(("t" "Todo" entry (file+datetree "~/org/gtd.org") ;(file+headline "~/org/gtd.org" "Tasks")
-           "* TODO %?\n  :PROPERTIES:\n  :creation_date:%U\n  :created_in:%a\n  :END:\n\n %i\n")
+           "* TODO %?\n  :PROPERTIES:\n  :creation_date: %U\n  :created_in: %a\n  :END:\n\n %i\n")
           ("j" "Journal" entry (file+datetree "~/org/journal.org")
            "* %?\nEntered on %U\n  %i\n  %a")))
 
@@ -425,7 +458,7 @@ There's also the non-hierarchic note-taking system **org-roam** of course:
 
 ** Myfiles (bookmarking system)
 #+begin_src emacs-lisp
-(load "~/myemacs/myfiles")
+  (load (concat myemacs-dir "myfiles"))
 #+end_src
 
 ** Docker
@@ -528,6 +561,7 @@ respective ~use-package~ calls...
 #+begin_src emacs-lisp
   (use-package pdf-tools
     :ensure t
+    :unless windows-os ;; disable on Windows for now until fix is available.
     :config
     (pdf-tools-install)
     (add-hook 'pdf-view-mode-hook (lambda() (linum-mode -1)))) ; don't show line numbers beside pdf
@@ -536,7 +570,9 @@ respective ~use-package~ calls...
 * Writing
 ** Pandoc
 #+BEGIN_SRC emacs-lisp
-  (use-package ox-pandoc :ensure t)
+  (use-package ox-pandoc
+    :ensure t
+    :unless windows-os)
 #+END_SRC
 
 ** Screenshots
@@ -623,6 +659,24 @@ I use magit for easy git management
     :bind (("C-c g" . 'magit-status)))
 #+END_SRC
 
+However, git for windows is *extremely* slow. So, use this simpler
+git status mode to make it a little faster:
+#+begin_src emacs-lisp
+  (when windows-os
+    (define-derived-mode magit-staging-mode magit-status-mode "Magit staging"
+      "Mode for showing staged and unstaged changes."
+      :group 'magit-status)
+    (defun magit-staging-refresh-buffer ()
+      (magit-insert-section (status)
+                            (magit-insert-untracked-files)
+                            (magit-insert-unstaged-changes)
+                            (magit-insert-staged-changes)))
+    (defun magit-staging ()
+      (interactive)
+      (magit-mode-setup #'magit-staging-mode)))
+
+#+end_src
+
 ** Projectile
 #+begin_src emacs-lisp
 (use-package projectile
@@ -699,43 +753,47 @@ Set default interpreter to python 3 instead of 2.
 
 *** Parinfer
 #+begin_src emacs-lisp
-(use-package parinfer
-  :ensure t
-  :defer 1
-  :bind
-  (("C-," . parinfer-toggle-mode))
-  :init
-  (progn
-    (setq parinfer-extensions
-          '(defaults       ; should be included.
-             pretty-parens  ; different paren styles for different modes.
-             evil           ; If you use Evil.
-             lispy          ; If you use Lispy. With this extension, you should install Lispy and do not enable lispy-mode directly.
-             paredit        ; Introduce some paredit commands.
-             smart-tab      ; C-b & C-f jump positions and smart shift with tab & S-tab.
-             smart-yank))   ; Yank behavior depend on mode.
-    (add-hook 'clojure-mode-hook #'parinfer-mode)
-    (add-hook 'emacs-lisp-mode-hook #'parinfer-mode)
-    (add-hook 'common-lisp-mode-hook #'parinfer-mode)
-    (add-hook 'scheme-mode-hook #'parinfer-mode)
-    (add-hook 'lisp-mode-hook #'parinfer-mode)))
+  (use-package parinfer
+    :ensure nil
+    :disabled  ;; it's broken - deprecated & to be replaced by parinfer-rust & parinfer-rust-mode
+    :defer 1
+    :bind
+    (("C-," . parinfer-toggle-mode))
+    :init
+    (progn
+      (setq parinfer-extensions
+            '(defaults       ; should be included.
+               pretty-parens  ; different paren styles for different modes.
+               evil           ; If you use Evil.
+               lispy          ; If you use Lispy. With this extension, you should install Lispy and do not enable lispy-mode directly.
+               paredit        ; Introduce some paredit commands.
+               smart-tab      ; C-b & C-f jump positions and smart shift with tab & S-tab.
+               smart-yank))   ; Yank behavior depend on mode.
+      (add-hook 'clojure-mode-hook #'parinfer-mode)
+      (add-hook 'emacs-lisp-mode-hook #'parinfer-mode)
+      (add-hook 'common-lisp-mode-hook #'parinfer-mode)
+      (add-hook 'scheme-mode-hook #'parinfer-mode)
+      (add-hook 'lisp-mode-hook #'parinfer-mode)))
 #+end_src
 
 *** TODO Improve sweet-expressions compatibility
 #+begin_src emacs-lisp
-;;(load "~/myemacs/sweet-lisp.el")
+;;(load (concat myemacs-dir "sweet-lisp.el"))
 #+end_src
 
 Auto-pair parenthesis:
 #+begin_src emacs-lisp
   (use-package autopair
-    :ensure t
+    :ensure nil
+    :disabled ;; apparently it's no longer on MELPA?! Look for replacement
     :config (autopair-global-mode 1))
 #+end_src
 
 *** Local HyperSpec
 #+begin_src emacs-lisp
-(load "~/.roswell/lisp/quicklisp/clhs-use-local.el" t)
+  (use-package clhs-use-local.el
+    :unless windows-os
+    :load-path "~/.roswell/lisp/quicklisp")
 #+end_src
 
 *** Syntax highlighting for defstar
@@ -774,7 +832,83 @@ Auto-pair parenthesis:
     :ensure t)
 #+end_src
 
-#+RESULTS:
+** Rust
+
+   This setup follows from [[https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/][Rust with Emacs]].
+
+   Rustic is a lightweight system with no dependencies that replaces rust-mode:
+#+begin_src emacs-lisp
+(use-package rustic
+  :ensure
+  :bind (:map rustic-mode-map
+              ("M-j" . lsp-ui-imenu)
+              ("M-?" . lsp-find-references)
+              ("C-c C-c l" . flycheck-list-errors)
+              ("C-c C-c a" . lsp-execute-code-action)
+              ("C-c C-c r" . lsp-rename)
+              ("C-c C-c q" . lsp-workspace-restart)
+              ("C-c C-c Q" . lsp-workspace-shutdown)
+              ("C-c C-c s" . lsp-rust-analyzer-status))
+  :config
+  ;; uncomment for less flashiness
+  ;; (setq lsp-eldoc-hook nil)
+  ;; (setq lsp-enable-symbol-highlighting nil)
+  ;; (setq lsp-signature-auto-activate nil)
+
+  ;; comment to disable rustfmt on save
+  (setq rustic-format-on-save t)
+  (add-hook 'rustic-mode-hook 'rk/rustic-mode-hook))
+
+(defun rk/rustic-mode-hook ()
+  ;; so that run C-c C-c C-r works without having to confirm, but don't try to
+  ;; save rust buffers that are not file visiting. Once
+  ;; https://github.com/brotzeit/rustic/issues/253 has been resolved this should
+  ;; no longer be necessary.
+  (when buffer-file-name
+    (setq-local buffer-save-without-query t)))
+#+end_src
+
+however, it is not as full featured as using LSP + rust-analyzer:
+
+#+begin_src emacs-lisp
+  (use-package lsp-mode
+    :ensure
+    :commands lsp
+    :custom
+    ;; what to use when checking on-save. "check" is default, I prefer clippy
+    (lsp-rust-analyzer-cargo-watch-command "clippy")
+    (lsp-eldoc-render-all t)
+    (lsp-idle-delay 0.6)
+    (lsp-rust-analyzer-server-display-inlay-hints t)
+    :config
+    (add-hook 'lsp-mode-hook 'lsp-ui-mode))
+
+  (use-package lsp-ui
+    :ensure
+    :commands lsp-ui-mode
+    :custom
+    (lsp-ui-peek-always-show t)
+    (lsp-ui-sideline-show-hover t)
+    ;(lsp-ui-doc-enable nil)  ;; Docs might be too verbose. If so uncomment this.
+    )
+#+end_src
+
+
+** Company-mode (completion)
+
+   #+begin_src emacs-lisp
+(use-package company
+  :ensure
+  :custom
+  (company-idle-delay 0.5) ;; how long to wait until popup
+  ;; (company-begin-commands nil) ;; uncomment to disable popup
+  :bind
+  (:map company-active-map
+              ("C-n". company-select-next)
+              ("C-p". company-select-previous)
+              ("M-<". company-select-first)
+              ("M->". company-select-last)))
+   #+end_src
 
 * Custom functions
 
@@ -823,7 +957,7 @@ Taken from the original .org-based setup at https://github.com/himmAllRight/dotf
 *** duplicate-line
   #+begin_src emacs-lisp
   (use-package duplicate_line.el
-    :load-path "~/myemacs"
+    :load-path myemacs-dir
     :config
     (key-chord-define-global "çd" 'duplicate-line))
   #+end_src
@@ -958,3 +1092,15 @@ That's it! Enjoy!
   (interactive)
   (search-backward "$"))
 #+end_src
+
+
+** TODO Extras (alpha-stage)
+
+   Auto-pair. Autopair and the newer Electric-pair mode are still not sufficient for some purposes.
+
+   #+begin_src emacs-lisp
+     (use-package smart-pair       
+       :load-path myemacs-dir
+       :chords (("çe" . smart-pair-region-with)))
+   #+end_src
+   
