@@ -66,7 +66,7 @@
   ; Dummy implementation: hardcoded
   ;(setq *myfiles-list* (list "asdf" "badsf"))
   ;(message "Loaded!"))
-  (setq *myfiles-list* (read-lines "/home/alberto.ferreira/myemacs/myfiles.mfl")))
+  (setq *myfiles-list* (read-lines (concat myemacs-dir "myfiles.mfl"))))
 
 
 
