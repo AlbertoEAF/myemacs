@@ -11,6 +11,28 @@ Compiled emacs from source with:
 ./configure --with-cairo --with-xwidgets
 #+end_src
 
+* Bootstrap myemacs system:
+
+Myemacs-dir must be set by user before loading myemacs system:
+   #+begin_src emacs-lisp
+  (unless (boundp 'myemacs-dir)
+    (throw 'myemacs-dir "myemacs-dir is not set!"))
+
+  (defvar myemacs-dir
+    (if (string-suffix-p "/" myemacs-dir)
+        (concat myemacs-dir "/")
+      myemacs-dir)
+    "The myemacs directory on your filesystem.
+  Used by myemacs system to load its internal extension modules")
+#+end_src
+
+Also, define some useful variables:
+#+begin_src emacs-lisp
+  (defconst windows-os (eq system-type 'windows-nt)
+    "t if this is a Windows OS")
+#+end_src
+
+
 * Bootstrap packages
 
 ** Melpa
@@ -32,16 +54,6 @@ Load use-package at compile-time:
 (eval-when-compile
   (require 'use-package))
 #+end_src
-
-** Setup ~myemacs-dir~ variable
-#+begin_src emacs-lisp
-  ;; Crucial variable to search local modules:
-  (if (boundp 'myemacs-dir)
-      (unless (string-suffix-p "/" myemacs-dir)
-        (setq myemacs-dir (concat myemacs-dir "/")))
-    (throw 'myemacs-dir "myemacs-dir is not set!"))
-#+end_src
-
 
 Key chord extensions:
 #+begin_src emacs-lisp
@@ -320,8 +332,9 @@ Add code to drag manually:
     (global-set-key "\C-ca" 'org-agenda)
     (global-font-lock-mode 1)
 
-    (require 'ox-gfm nil t)
-    (load-file (concat myemacs-dir "org-gitbook.el")))
+    (unless windows-os
+      (require 'ox-gfm nil t)
+      (load-file (concat myemacs-dir "org-gitbook.el"))))
 
   (use-package ox-reveal
     :disabled
@@ -533,7 +546,7 @@ respective ~use-package~ calls...
 #+begin_src emacs-lisp
   (use-package pdf-tools
     :ensure t
-    :if (equal system-type 'gnu/linux) ;; disable on Windows for now until fix is available.
+    :unless windows-os ;; disable on Windows for now until fix is available.
     :config
     (pdf-tools-install)
     (add-hook 'pdf-view-mode-hook (lambda() (linum-mode -1)))) ; don't show line numbers beside pdf
@@ -542,7 +555,9 @@ respective ~use-package~ calls...
 * Writing
 ** Pandoc
 #+BEGIN_SRC emacs-lisp
-  (use-package ox-pandoc :ensure t)
+  (use-package ox-pandoc
+    :ensure t
+    :unless windows-os)
 #+END_SRC
 
 ** Screenshots
@@ -628,6 +643,24 @@ I use magit for easy git management
     :chords (("çm" . magit-status))
     :bind (("C-c g" . 'magit-status)))
 #+END_SRC
+
+However, git for windows is *extremely* slow. So, use this simpler
+git status mode to make it a little faster:
+#+begin_src emacs-lisp
+  (when windows-os
+    (define-derived-mode magit-staging-mode magit-status-mode "Magit staging"
+      "Mode for showing staged and unstaged changes."
+      :group 'magit-status)
+    (defun magit-staging-refresh-buffer ()
+      (magit-insert-section (status)
+                            (magit-insert-untracked-files)
+                            (magit-insert-unstaged-changes)
+                            (magit-insert-staged-changes)))
+    (defun magit-staging ()
+      (interactive)
+      (magit-mode-setup #'magit-staging-mode)))
+
+#+end_src
 
 ** Projectile
 #+begin_src emacs-lisp
@@ -744,6 +777,7 @@ Auto-pair parenthesis:
 *** Local HyperSpec
 #+begin_src emacs-lisp
   (use-package clhs-use-local.el
+    :unless windows-os
     :load-path "~/.roswell/lisp/quicklisp")
 #+end_src
 
