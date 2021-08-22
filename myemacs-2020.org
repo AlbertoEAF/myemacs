@@ -181,6 +181,14 @@ Enable recent files mode
 (blink-cursor-mode 1)
 #+end_src
 
+*** Electric-pair-mode
+
+    Automatically insert matching parenthesis/quotes if a region is selected:
+    #+begin_src emacs-lisp
+     ;; (electric-pair-mode)
+    #+end_src
+    
+
 ** Themes
 
 #+BEGIN_SRC emacs-lisp
@@ -1079,3 +1087,15 @@ That's it! Enjoy!
   (interactive)
   (search-backward "$"))
 #+end_src
+
+
+** TODO Extras (alpha-stage)
+
+   Auto-pair. Autopair and the newer Electric-pair mode are still not sufficient for some purposes.
+
+   #+begin_src emacs-lisp
+     (use-package smart-pair       
+       :load-path myemacs-dir
+       :chords (("çe" . smart-pair-region-with)))
+   #+end_src
+   
