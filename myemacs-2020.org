@@ -32,7 +32,6 @@ Also, define some useful variables:
     "t if this is a Windows OS")
 #+end_src
 
-
 * Bootstrap packages
 
 ** Melpa
@@ -793,6 +792,7 @@ Auto-pair parenthesis:
 #+begin_src emacs-lisp
   (use-package clhs-use-local.el
     :unless windows-os
+    :disabled ;; Add back theses files in the future.
     :load-path "~/.roswell/lisp/quicklisp")
 #+end_src
 
@@ -1103,3 +1103,12 @@ That's it! Enjoy!
        :load-path myemacs-dir
        :chords (("çe" . smart-pair-region-with)))
    #+end_src
+
+
+
+* Startup buffer
+
+  Choose the initial buffer:
+#+begin_src emacs-lisp
+  (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
+#+end_src
