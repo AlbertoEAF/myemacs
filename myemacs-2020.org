@@ -187,7 +187,7 @@ Enable recent files mode
     #+begin_src emacs-lisp
      ;; (electric-pair-mode)
     #+end_src
-    
+
 
 ** Themes
 
@@ -1099,8 +1099,7 @@ That's it! Enjoy!
    Auto-pair. Autopair and the newer Electric-pair mode are still not sufficient for some purposes.
 
    #+begin_src emacs-lisp
-     (use-package smart-pair       
+     (use-package smart-pair
        :load-path myemacs-dir
        :chords (("çe" . smart-pair-region-with)))
    #+end_src
-   
