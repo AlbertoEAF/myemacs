@@ -14,9 +14,11 @@ It is supposed to be a better alternative to autopair and the latest electric-pa
   (unless (region-active-p)
     (throw 'smart-pair "No region is active!"))
   (save-excursion
-    (goto-char (region-end))
-    (insert-char (smart-pair-closing-char chr))
-    (goto-char (region-beginning))
-    (insert-char chr)))
+    (let* ((p1 (region-beginning)) (p2 (region-end))
+           (a (min p1 p2)) (b (max p1 p2)))
+      (goto-char b)
+      (insert-char (smart-pair-closing-char chr))
+      (goto-char a)
+      (insert-char chr))))
 
 (provide 'smart-pair)
