@@ -413,6 +413,16 @@ Add code to drag manually:
   (key-chord-define-global "ºc"  'select-org-table-cell)
 
 #+end_src
+*** Syntax highlighting for Org-mode exports
+
+    Org-mode exports will require extra packages for syntax highlighting in different back-ends.
+
+    HTML backend:
+#+begin_src emacs-lisp
+  (use-package htmlize
+    :ensure t)
+#+end_src
+
 *** Org-roam
 
 There's also the non-hierarchic note-taking system **org-roam** of course:
