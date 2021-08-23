@@ -195,7 +195,7 @@ Enable recent files mode
     :ensure t
     :defer t
     :init
-    (load-theme 'spacemacs-light t)
+    ;(load-theme 'spacemacs-light t) ;; called already in '#myemacs-load-theme
     (setq spacemacs-theme-org-agenda-height nil)
     (setq spacemacs-theme-org-height nil))
 
@@ -218,6 +218,11 @@ Enable recent files mode
     :ensure t
     :after spaceline
     :config (spaceline-all-the-icons-theme))
+
+  (defvar myemacs-theme 'spacemacs-light
+    "Theme set in myemacs package")
+  (defun myemacs-load-theme ()
+    (load-theme myemacs-theme t))
 #+END_SRC
 
 ** Dashboard
@@ -326,6 +331,7 @@ Add code to drag manually:
   (load (concat myemacs-dir "move_lines"))
 #+end_src
 ** Org-mode
+
 #+begin_src emacs-lisp
   ;; Org-mode settings
   (use-package org
@@ -1106,9 +1112,23 @@ That's it! Enjoy!
 
 
 
-* Startup buffer
+* Settings to make daemon-client experience closer to standalone emacs use
 
-  Choose the initial buffer:
+
+** Opening buffer
+   Choose the initial buffer:
+ #+begin_src emacs-lisp
+   (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
+ #+end_src
+
+** Load theme
+
+   The theme is only loaded with ~use-package~, hence this:
+
 #+begin_src emacs-lisp
-  (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
+  (if (daemonp)
+      (add-hook 'after-make-frame-functions
+                (lambda (frame)
+                  (with-selected-frame frame (myemacs-load-theme))))
+    (myemacs-load-theme))
 #+end_src
