@@ -611,6 +611,22 @@ Paste images directly from clipboard to org documents:
 #+end_src
 
 * Development
+
+** rg
+#+begin_src emacs-lisp
+  (use-package rg
+    :disabled ;; currently broken: no 'rg-menu function.
+    :ensure t
+    :config
+    (rg-enable-default-bindings))
+#+end_src
+
+#+begin_src emacs-lisp
+    (use-package deadgrep
+      :ensure t
+      :bind ("<f6>" . 'deadgrep))
+#+end_src
+
 ** Multiple cursors
 #+begin_src emacs-lisp
   (use-package multiple-cursors
