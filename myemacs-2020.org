@@ -1144,7 +1144,8 @@ That's it! Enjoy!
 ** Opening buffer
    Choose the initial buffer:
  #+begin_src emacs-lisp
-   (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*")))
+   (when (daemonp)
+     (setq initial-buffer-choice (lambda () (get-buffer "*dashboard*"))))
  #+end_src
 
 ** Load theme
