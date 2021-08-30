@@ -541,7 +541,6 @@ There's also the non-hierarchic note-taking system **org-roam** of course:
 Setup and use Ivy
 #+BEGIN_SRC emacs-lisp
   (use-package ivy
-    :disabled
     :ensure t
     :config
     (ivy-mode 1)
@@ -787,7 +786,6 @@ Set default interpreter to python 3 instead of 2.
 #+begin_src emacs-lisp
   (use-package slime
     :ensure t
-    :pin melpa
     :defer t
     :commands slime
     :config
