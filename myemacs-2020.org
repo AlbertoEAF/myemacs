@@ -32,6 +32,16 @@ Also, define some useful variables:
     "t if this is a Windows OS")
 #+end_src
 
+And ensure environment variables are the same as in the shell:
+#+begin_src emacs-lisp
+  ;; Still not working that well - some PATH parts don't appear even with this: (must change the PATH exports -- see package docs)
+  (use-package exec-path-from-shell
+    :ensure t
+    :config
+    (when (daemonp)
+      (exec-path-from-shell-initialize)))
+#+end_src
+
 * Bootstrap packages
 
 ** Melpa
@@ -281,7 +291,7 @@ Use the "dashboard" package for my startup screen.
   (key-chord-define-global "çs"  'save-buffer)
   (key-chord-define-global "ÇS"  'save-buffer)
   (key-chord-define-global "ço"  'other-window)
-  (key-chord-define-global "çk"  'kill-this-buffer)
+  (key-chord-define-global "çk"  (lambda () (interactive) (kill-buffer (current-buffer)))) ;'kill-this-buffer is from the menu-bar and buggy.
   (key-chord-define-global "ÇK"  'clean-buffers)
   (key-chord-define-global "çu"  'undo)
   (key-chord-define-global "ç1"  'delete-other-windows)
@@ -324,6 +334,27 @@ Use the "dashboard" package for my startup screen.
   (global-set-key (kbd "s-r") 'recentf-open-files)
   (global-set-key (kbd "s-o") 'myfiles)
 #+end_src
+
+
+** Copy last message to clipboard
+   Sometimes it's useful to copy the last message to the clipboard:
+   #+begin_src emacs-lisp
+     (defun get-last-message()
+       (interactive)
+       (with-current-buffer (get-buffer "*Messages*")
+         (end-of-buffer)
+         (previous-line 2)
+         (format "%s" (filter-buffer-substring (line-beginning-position) (line-end-position)))))
+
+     (defun copy-last-message-to-clipboard ()
+       (interactive)
+       (let ((last-message (get-last-message)))
+         (shell-command (format "echo '%s' | xclip -sel clip &>/dev/null" last-message))
+         (message (format "Copied last message '%s' to system clipboard." last-message))))
+
+     (key-chord-define-global "çx"  'copy-last-message-to-clipboard)
+
+   #+end_src
 
 ** Drag-stuff
 Use package drag stuff:
@@ -432,6 +463,21 @@ Add code to drag manually:
   (use-package htmlize
     :ensure t)
 #+end_src
+*** Org-ref citations
+
+    #+begin_src emacs-lisp
+      (use-package org-ref
+        :ensure t
+        :config
+        (setq
+         org-ref-notes-directory (concat org-roam-directory "notes"))
+        )
+    #+end_src
+*** Org-noter
+
+    #+begin_src emacs-lisp
+      (use-package org-noter :ensure t)
+    #+end_src
 
 *** Org-roam
 
@@ -460,6 +506,11 @@ There's also the non-hierarchic note-taking system **org-roam** of course:
              (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}")
              :unnarrowed t))))
 #+end_src
+
+*** Org-roam-bibtex
+    #+begin_src emacs-lisp
+      (use-package org-roam-bibtex :ensure t)
+    #+end_src
 
 #+RESULTS:
 : org-roam-dailies-capture-today
@@ -587,12 +638,13 @@ respective ~use-package~ calls...
 
 * Tools
 #+begin_src emacs-lisp
-  (use-package pdf-tools
-    :ensure t
-    :unless windows-os ;; disable on Windows for now until fix is available.
-    :config
-    (pdf-tools-install)
-    (add-hook 'pdf-view-mode-hook (lambda() (linum-mode -1)))) ; don't show line numbers beside pdf
+    (use-package pdf-tools
+      :ensure t
+      :unless windows-os ;; disable on Windows for now until fix is available.
+      :config
+      (pdf-tools-install)
+      (add-hook 'pdf-view-mode-hook (lambda() (linum-mode -1)))
+      (setq pdf-annot-activate-created-annotations t)) ; don't show line numbers beside pdf
 #+end_src
 
 * Writing
@@ -602,6 +654,10 @@ respective ~use-package~ calls...
     :ensure t
     :unless windows-os)
 #+END_SRC
+** ox-bibtex
+   #+begin_src emacs-lisp
+     (use-package ox-bibtex :ensure t :disabled) ; not available on melpa, only direct download.
+   #+end_src
 
 ** Screenshots
 Paste images directly from clipboard to org documents:
@@ -789,8 +845,8 @@ Set default interpreter to python 3 instead of 2.
     :defer t
     :commands slime
     :config
-    (load (expand-file-name "~/.roswell/helper.el"))
     (setq inferior-lisp-program "ros -Q run")
+    (load (expand-file-name "~/.roswell/helper.el"))
 
     ;;(add-to-list 'load-path "path/of/slime")
     (require 'slime-autoloads)
