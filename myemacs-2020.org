@@ -177,7 +177,9 @@ Tool Tips in echo area
 *** Recentf mode
 Enable recent files mode
 #+begin_src emacs-lisp
-(recentf-mode 1)
+  (recentf-mode 1)
+
+  (run-at-time (current-time) 300 'recentf-save-list)
 #+end_src
 
 *** Fringes
@@ -209,38 +211,51 @@ Still have to try these out, somehow they don't work very well with org mode...
 ** Themes
 
 #+BEGIN_SRC emacs-lisp
-  (use-package spacemacs-theme
-    :ensure t
-    :defer t
-    :init
-    ;;(load-theme 'spacemacs-light t) ;; called in '#myemacs-load-theme
-    (setq spacemacs-theme-org-agenda-height nil)
-    (setq spacemacs-theme-org-height nil))
+    (use-package spacemacs-theme
+      :ensure t
+      :defer t
+      :init
+      ;;(load-theme 'spacemacs-light t) ;; called in '#myemacs-load-theme
+      (setq spacemacs-theme-org-agenda-height nil)
+      (setq spacemacs-theme-org-height nil))
 
-  ;; Still need to understand how to make the spaceline activate correctly below:
+    ;; Still need to understand how to make the spaceline activate correctly below:
 
-  (use-package spaceline
-    :disabled
-    :ensure t
-    :after spacemacs-theme
-    ;;:defer t
-    :init
-    (setq powerline-default-separator 'arrow-fade)
-    :config
-    (require 'spaceline-config)
-    (spaceline-spacemacs-theme))
+    (use-package spaceline
+      :disabled
+      :ensure t
+      :after spacemacs-theme
+      ;;:defer t
+      :init
+      (setq powerline-default-separator 'arrow-fade)
+      :config
+      (require 'spaceline-config)
+      (spaceline-spacemacs-theme))
 
-  (use-package all-the-icons :ensure t :disabled)
-  (use-package spaceline-all-the-icons
-    :disabled
-    :ensure t
-    :after spaceline
-    :config (spaceline-all-the-icons-theme))
+    (use-package all-the-icons :ensure t :disabled)
+    (use-package spaceline-all-the-icons
+      :disabled
+      :ensure t
+      :after spaceline
+      :config (spaceline-all-the-icons-theme))
 
-  (defvar myemacs-theme 'spacemacs-light
-    "Theme set in myemacs package")
-  (defun myemacs-load-theme ()
-    (load-theme myemacs-theme t))
+
+    (use-package rebecca-theme
+      :ensure t
+      :defer t)
+
+    ;; Themes I most like are:
+    ;; - 'spacemacs-light: for its pleasant and easy to read.
+    ;; - 'rebecca: prettiest dark theme, more so than 'spacemacs-dark.
+    (defvar myemacs-theme 'spacemacs-light
+      "Theme set in myemacs package")
+
+    (when (eq myemacs-theme 'rebecca)
+      ;; HACK: TODO: FIX ME: Rebecca theme has no org code block theme settings. By loading this theme before it looks better.
+      (load-theme 'spacemacs-dark t))
+
+    (defun myemacs-load-theme ()
+      (load-theme myemacs-theme t))
 #+END_SRC
 
 ** Dashboard
@@ -468,6 +483,7 @@ Add code to drag manually:
     #+begin_src emacs-lisp
       (use-package org-ref
         :ensure t
+        :after 'org-roam
         :config
         (setq
          org-ref-notes-directory (concat org-roam-directory "notes"))
@@ -845,8 +861,9 @@ Set default interpreter to python 3 instead of 2.
     :defer t
     :commands slime
     :config
-    (setq inferior-lisp-program "ros -Q run")
-    (load (expand-file-name "~/.roswell/helper.el"))
+    (setq inferior-lisp-program "sbcl") ;; for development in sbcl clone
+    ;(setq inferior-lisp-program "ros -Q run")
+    ;(load (expand-file-name "~/.roswell/helper.el"))
 
     ;;(add-to-list 'load-path "path/of/slime")
     (require 'slime-autoloads)
