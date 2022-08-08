@@ -395,6 +395,17 @@ Add code to drag manually:
 
 #+begin_src emacs-lisp
   ;; Org-mode settings
+
+  (defun org-save-and-export (fn)
+    (interactive "sMode?")
+    (save-buffer)
+    (message (concat "mode (html/latex-pdf):" fn))
+    (cond
+     ((string= fn "html") (org-html-export-to-html))
+     ((string= fn "latex-pdf") (org-latex-export-to-pdf))
+     (t (error "Please choose html or latex-pdf"))))
+
+
   (use-package org
     :defer t
     :init
@@ -406,8 +417,11 @@ Add code to drag manually:
     (add-to-list 'auto-mode-alist '("\\.org$" . org-mode))
     (global-set-key "\C-cl" 'org-store-link)
     (global-set-key "\C-ca" 'org-agenda)
-    (define-key org-mode-map (kbd "<f5>") '(lambda () (interactive) (save-buffer) (org-latex-export-to-pdf)))
     (global-font-lock-mode 1)
+
+    (define-key org-mode-map (kbd "<f5>") '(lambda ()
+                                             (interactive)
+                                             (org-save-and-export "latex-pdf")))
 
     (unless windows-os
       (require 'ox-gfm nil t)
@@ -424,12 +438,7 @@ Add code to drag manually:
     (require 'ox-reveal)
     (setq org-reveal-root "file:///home/alberto.ferreira/code/external/reveal.js/"))
 
-  ;; export html
-  (defun org-f5 ()
-    (interactive)
-    (save-buffer)
-    (org-html-export-to-html))
-  (define-key org-mode-map (kbd "<f5>") 'org-f5)
+
 
 
   ;; clock time
@@ -475,7 +484,6 @@ Add code to drag manually:
     (backward-char)
     (skip-chars-backward " "))
   (key-chord-define-global "ºc"  'select-org-table-cell)
-
 #+end_src
 *** Syntax highlighting for Org-mode exports
 
