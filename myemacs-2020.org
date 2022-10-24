@@ -589,6 +589,16 @@ There's also the non-hierarchic note-taking system **org-roam** of course:
          ("<S-f2>" . bm-previous)))
 #+end_src
 
+** Yasnippet
+#+begin_src emacs-lisp
+  (use-package yasnippet
+    :ensure t
+    :config (yas-global-mode 1))
+
+  (use-package yasnippet-snippets
+    :ensure t)
+#+end_src
+
 * Ido-mode
 
   #+begin_src emacs-lisp
@@ -860,6 +870,14 @@ Set default interpreter to python 3 instead of 2.
   ;; flycheck + elpy enable:
   (setq elpy-modules (delq 'elpy-module-flymake elpy-modules))
   (add-hook 'elpy-mode-hook 'flycheck-mode)
+#+end_src
+
+
+** Julia
+
+#+begin_src emacs-lisp
+  (use-package julia-mode
+    :ensure t)
 #+end_src
 
 ** Lisp
