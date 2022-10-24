@@ -38,16 +38,6 @@ Avoid calling gc so often:
 #+end_src
 
 
-And ensure environment variables are the same as in the shell:
-#+begin_src emacs-lisp
-  ;; Still not working that well - some PATH parts don't appear even with this: (must change the PATH exports -- see package docs)
-  (use-package exec-path-from-shell
-    :ensure t
-    :config
-    (when (daemonp)
-      (exec-path-from-shell-initialize)))
-#+end_src
-
 * Bootstrap packages
 
 ** Melpa
@@ -68,6 +58,16 @@ Load use-package at compile-time:
 #+begin_src emacs-lisp
 (eval-when-compile
   (require 'use-package))
+#+end_src
+
+And ensure environment variables are the same as in the shell:
+#+begin_src emacs-lisp
+  ;; Still not working that well - some PATH parts don't appear even with this: (must change the PATH exports -- see package docs)
+  (use-package exec-path-from-shell
+    :ensure t
+    :config
+    (when (daemonp)
+      (exec-path-from-shell-initialize)))
 #+end_src
 
 Key chord extensions:
