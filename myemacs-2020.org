@@ -140,7 +140,7 @@ Remove splash screen and use *scratch* instead as the home buffer
 
 *** Line Numbers
 #+BEGIN_SRC emacs-lisp
-(global-linum-mode 0)
+  (global-display-line-numbers-mode)
 #+END_SRC
 
 *** Menu Bar
@@ -571,13 +571,14 @@ There's also the non-hierarchic note-taking system **org-roam** of course:
 
 ** Docker
 #+begin_src emacs-lisp
-  (use-package dockerfile-mode
-    :ensure t
-    :mode "Dockerfile\\'")
+  ;; (use-package dockerfile-mode
+  ;;   :ensure t
+  ;;   :mode "Dockerfile\\'")
 
-  (use-package docker
-    :ensure t
-    :bind ("C-c d" . docker))
+
+  ;; (use-package docker
+  ;;   :ensure t
+  ;;   :bind ("C-c dg" . docker))
 #+end_src
 
 ** Bookmarks
