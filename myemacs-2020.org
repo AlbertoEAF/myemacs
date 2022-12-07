@@ -49,15 +49,20 @@ Avoid calling gc so often:
 ** use-package (& key-chords)
 Install `use-package` if necessary:
 #+BEGIN_SRC emacs-lisp
-(unless (package-installed-p 'use-package)
-  (package-refresh-contents)
-  (package-install 'use-package))
+  (unless (package-installed-p 'use-package)
+    (package-refresh-contents)
+    (package-install 'use-package))
+
+  (unless (package-installed-p 'req-package)
+    (package-refresh-contents)
+    (package-install 'req-package))
 #+END_SRC
 
 Load use-package at compile-time:
 #+begin_src emacs-lisp
-(eval-when-compile
-  (require 'use-package))
+  (eval-when-compile
+    (require 'use-package)
+    (require 'req-package))
 #+end_src
 
 And ensure environment variables are the same as in the shell:
@@ -1323,4 +1328,14 @@ That's it! Enjoy!
                 (lambda (frame)
                   (with-selected-frame frame (myemacs-load-theme))))
     (myemacs-load-theme))
+#+end_src
+
+
+
+
+* Finalize setup
+
+req-package actually requires doing an extra call to kick in:
+#+begin_src emacs-lisp
+  (req-package-finish)
 #+end_src
