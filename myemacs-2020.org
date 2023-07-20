@@ -8,13 +8,25 @@ Based .org setup on https://github.com/himmAllRight/dotfiles/blob/master/emacs/c
 
 Compiled emacs from source with:
 #+begin_src bash
-./configure --with-cairo --with-xwidgets
+  # Native JSON
+  sudo apt install libjansson4 libjansson-dev
+  # Native Complilation
+  sudo apt install libgccjit0 libgccjit-10-dev gcc-10 g++-10
+  export CC=/usr/bin/gcc-10 CXX=/usr/bin/gcc-10
+
+  # Compiling for Wayland? Use --with-pgtk too:
+  ./configure --with-cairo --with-xwidgets --with-native-compilation --with-json
+
+  # then:
+  make -j8
+  sudo make install
+
 #+end_src
 
 * Bootstrap myemacs system:
 
 Myemacs-dir must be set by user before loading myemacs system:
-   #+begin_src emacs-lisp
+#+begin_src emacs-lisp
   (unless (boundp 'myemacs-dir)
     (throw 'myemacs-dir "myemacs-dir is not set!"))
 
@@ -108,6 +120,12 @@ Hydra extensions:
 (setq dired-dwim-target t)
 
 #+END_SRC
+
+*** Smooth Scrolling
+#+begin_src emacs-lisp
+  (pixel-scroll-precision-mode)
+#+end_src
+
 
 *** Dired-mode
 #+begin_src emacs-lisp
@@ -259,7 +277,7 @@ Still have to try these out, somehow they don't work very well with org mode...
     ;; Themes I most like are:
     ;; - 'spacemacs-light: for its pleasant and easy to read.
     ;; - 'rebecca: prettiest dark theme, more so than 'spacemacs-dark.
-    (defvar myemacs-theme 'spacemacs-light
+    (defvar myemacs-theme 'spacemacs-light ;'rebecca
       "Theme set in myemacs package")
 
     (when (eq myemacs-theme 'rebecca)
@@ -312,6 +330,21 @@ Use the "dashboard" package for my startup screen.
 
 ** Navigation/Movement / editing key bindings
 #+begin_src emacs-lisp
+  (defun add-newline-end-of-buffer ()
+    "Keeps the current position but adds a newline to the end of the buffer."
+    (interactive)
+    (save-excursion
+      (goto-char (point-max))
+      (insert "\n")))
+  (defun my-whitespace-cleanup ()
+    "Same as emacs' `whitespace-cleanup` but leaves a newline at the end of the file."
+    (interactive)
+    (whitespace-cleanup)
+    (add-newline-end-of-buffer))
+
+
+
+
   ;; actions
   (key-chord-define-global "çf"  'ido-find-file)
   (key-chord-define-global "çb"  'ido-switch-buffer)
@@ -326,7 +359,7 @@ Use the "dashboard" package for my startup screen.
   (key-chord-define-global "ç3"  'split-window-right)
   (key-chord-define-global "ç0"  'delete-window)
   (key-chord-define-global "çw"  'kill-word)
-  (key-chord-define-global "ç "  'whitespace-cleanup)
+  (key-chord-define-global "ç "  'my-whitespace-cleanup)
   (key-chord-define-global "çj"  'join-line)
   (key-chord-define-global "ÇJ"  'join-line)
   (key-chord-define-global "çc"  'comment-or-uncomment-region)
@@ -360,6 +393,10 @@ Use the "dashboard" package for my startup screen.
   ;; non-key-chord actions:
   (global-set-key (kbd "s-r") 'recentf-open-files)
   (global-set-key (kbd "s-o") 'myfiles)
+
+
+
+
 #+end_src
 
 
@@ -423,7 +460,7 @@ Add code to drag manually:
     (global-set-key "\C-cl" 'org-store-link)
     (global-set-key "\C-ca" 'org-agenda)
     (global-font-lock-mode 1)
-
+    (setq org-src-fontify-natively t)
     (define-key org-mode-map (kbd "<f5>") '(lambda ()
                                              (interactive)
                                              (org-save-and-export "latex-pdf")))
@@ -1432,7 +1469,6 @@ That's it! Enjoy!
                   (with-selected-frame frame (myemacs-load-theme))))
     (myemacs-load-theme))
 #+end_src
-
 
 
 
