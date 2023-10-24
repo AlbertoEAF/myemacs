@@ -330,21 +330,6 @@ Use the "dashboard" package for my startup screen.
 
 ** Navigation/Movement / editing key bindings
 #+begin_src emacs-lisp
-  (defun add-newline-end-of-buffer ()
-    "Keeps the current position but adds a newline to the end of the buffer."
-    (interactive)
-    (save-excursion
-      (goto-char (point-max))
-      (insert "\n")))
-  (defun my-whitespace-cleanup ()
-    "Same as emacs' `whitespace-cleanup` but leaves a newline at the end of the file."
-    (interactive)
-    (whitespace-cleanup)
-    (add-newline-end-of-buffer))
-
-
-
-
   ;; actions
   (key-chord-define-global "çf"  'ido-find-file)
   (key-chord-define-global "çb"  'ido-switch-buffer)
@@ -359,7 +344,7 @@ Use the "dashboard" package for my startup screen.
   (key-chord-define-global "ç3"  'split-window-right)
   (key-chord-define-global "ç0"  'delete-window)
   (key-chord-define-global "çw"  'kill-word)
-  (key-chord-define-global "ç "  'my-whitespace-cleanup)
+  (key-chord-define-global "ç "  'whitespace-cleanup) ; 'my-whitespace-cleanup adds empty line at end.
   (key-chord-define-global "çj"  'join-line)
   (key-chord-define-global "ÇJ"  'join-line)
   (key-chord-define-global "çc"  'comment-or-uncomment-region)
