@@ -15,7 +15,7 @@ Compiled emacs from source with:
   export CC=/usr/bin/gcc-10 CXX=/usr/bin/gcc-10
 
   # Compiling for Wayland? Use --with-pgtk too:
-  ./configure --with-cairo --with-xwidgets --with-native-compilation --with-json
+  ./configure --with-cairo --with-native-compilation  #--with-xwidgets
 
   # then:
   make -j8
@@ -750,6 +750,13 @@ Paste images directly from clipboard to org documents:
 #+end_src
 
 * Development
+
+** fold-this
+#+begin_src emacs-lisp
+(global-set-key (kbd "C-c C-f") 'fold-this-all)
+(global-set-key (kbd "C-c C-F") 'fold-this)
+(global-set-key (kbd "C-c M-f") 'fold-this-unfold-all)
+#+end_src
 
 ** flycheck
 #+begin_src emacs-lisp
