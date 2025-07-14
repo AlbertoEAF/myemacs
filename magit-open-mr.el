@@ -7,7 +7,7 @@
   (with-current-buffer (get-single-magit-process-buffer-name)
     (let* ((lines (buffer-lines-to-list))
            (mr-header-index-from-bottom (cl-position-if (lambda (line)
-                                                          (string-match ".*To create a merge request for af-broken-dc-link-stag, visit:.*$" line))
+                                                          (string-match ".*To create a merge request for .*, visit:.*$" line))
                                                         (reverse lines))))
       (when (null mr-header-index-from-bottom)
         (error "Couldn't find a link to an MR to open!"))
