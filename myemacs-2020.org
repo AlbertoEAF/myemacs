@@ -860,6 +860,13 @@ git status mode to make it a little faster:
 
 #+end_src
 
+In case we want to open an MR we can now do so with the interactive `(magit-open-mr)`:
+#+begin_src emacs-lisp
+(load "magit-open-mr")
+#+end_src
+
+
+
 ** Projectile
 #+begin_src emacs-lisp
 (use-package projectile
@@ -876,6 +883,10 @@ Setup YAML mode for editing configs
 #+BEGIN_SRC emacs-lisp
   (use-package yaml-mode
     :ensure t)
+
+  (use-package flymake-yamllint
+    :config
+    (add-hook 'yaml-mode-hook 'flymake-yamllint-setup))
 #+END_SRC
 
 ** Json
